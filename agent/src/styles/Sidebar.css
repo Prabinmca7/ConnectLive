@@ -1,0 +1,43 @@
+.chat-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .chat-card:hover {
+    background: #f9f9f9;
+  }
+  
+  .chat-info h4 {
+    margin: 0;
+    color: #1a1a1a;
+    font-size: 16px;
+  }
+  
+  .chat-info p {
+    color: #666;
+    margin: 3px 0 5px;
+    font-size: 13px;
+  }
+  
+  .status {
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 3px 8px;
+  }
+  
+  .status.active {
+    background: #e7f4ff;
+    color: #1a73e8;
+  }
+  
+  .status.ended {
+    background: #fceaea;
+    color: #d93025;
+  }
+  

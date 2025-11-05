@@ -1,0 +1,74 @@
+/* ===== HEADER BAR ===== */
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #1a73e8;
+    color: #fff;
+    padding: 10px 24px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    font-family: "Inter", system-ui, sans-serif;
+  }
+  
+  /* ===== LEFT SECTION ===== */
+  .header .left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    font-weight: 500;
+  }
+  
+  .header .left svg {
+    font-size: 22px;
+  }
+  
+  /* ===== RIGHT SECTION ===== */
+  .header .right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  /* ===== STATUS BUTTON ===== */
+  .status-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #ffffff;
+    color: #1a73e8;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .status-btn:hover {
+    background-color: #f1f1f1;
+  }
+  
+  /* ===== LOGOUT BUTTON ===== */
+  .header button {
+    background-color: #f8f9fa;
+    color: #1a73e8;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s ease;
+  }
+  
+  .header button:hover {
+    background-color: #e4e6eb;
+  }
+  
+  .header button svg {
+    font-size: 14px;
+  }
+  

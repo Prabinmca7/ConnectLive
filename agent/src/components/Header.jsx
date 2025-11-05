@@ -5,7 +5,7 @@ import "../styles/Header.css";
 
 const Header = ({ agent, onLogout }) => {
   const socket = useSocket();
-  const [online, setOnline] = useState(true);
+  const [online, setOnline] = useState(false);
 
   const toggleOnline = () => {
     if (online) {

@@ -5,14 +5,9 @@ import "../styles/Header.css";
 
 const Header = ({ agent, onLogout }) => {
   const socket = useSocket();
-  const [online, setOnline] = useState(true);
+  const [online, setOnline] = useState(false);
 
-  // Notify backend immediately after component mounts
-  useEffect(() => {
-    if (socket) {
-      socket.emit("agent-online", { name: agent.username });
-    }
-  }, [socket, agent.username]);
+ 
 
   const toggleOnline = () => {
     if (online) {

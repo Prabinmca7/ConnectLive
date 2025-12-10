@@ -58,7 +58,7 @@ const ChatWindow = ({ currentChat }) => {
       <div className="messages">
         {messages.map((msg, i) => (
           <div key={i}>
-            <strong>{msg.name || msg.from}:</strong> {msg.message}
+            <strong>{msg.name}:</strong> {msg.message}
           </div>
         ))}
       </div>

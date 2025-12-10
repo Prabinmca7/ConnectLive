@@ -6,7 +6,7 @@ export const initChatSocket = (io) => {
     console.log(`User connected: ${socket.id}`);
 
     // ⭐ Store customer name when connected
-    socket.customerName = ""; // ⭐ UPDATED
+    socket.customerName = ""; 
 
     // 🧪 Test emit
     setTimeout(() => {
@@ -59,7 +59,7 @@ export const initChatSocket = (io) => {
       // ⭐ Include customer name when sending to agent
       io.to(to).emit("receive-message", { 
         from: socket.id, 
-        name: socket.customerName || "Customer", // ⭐ UPDATED
+        name: socket.customerName, // ⭐ UPDATED
         message 
       });
     });

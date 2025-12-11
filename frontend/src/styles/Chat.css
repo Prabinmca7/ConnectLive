@@ -1,0 +1,27 @@
+
+/* chatbot options */
+
+.chat-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-top: 1px solid #e3e3e3;
+}
+
+.chat-option-btn {
+    border-radius: 20px;
+    border: 1px solid blue;
+    margin: 5px;
+    padding: 8px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+    background: transparent;
+}
+
+.chat-option-btn:hover {
+    background-color: #0d6efd;
+    color: white;
+}

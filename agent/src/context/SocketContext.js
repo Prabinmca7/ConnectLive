@@ -8,7 +8,7 @@ export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    const newSocket = io("http://localhost:4000");
+    const newSocket = io("https://backend-3du0.onrender.com");
     setSocket(newSocket);
 
     return () => newSocket.disconnect();

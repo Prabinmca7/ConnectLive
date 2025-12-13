@@ -65,7 +65,7 @@ const Sidebar = ({ setCurrentChat }) => {
 
     // Optional: save to DB (you can keep it later)
     try {
-      await fetch("http://localhost:4000/api/chats", {
+      await fetch("https://backend-3du0.onrender.com/api/chats", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newChat),

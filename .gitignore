@@ -38,11 +38,11 @@ lerna-debug.log*
 # Environment Variables and Secrets
 # ---------------------------------
 # Sensitive files that should NEVER be committed
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# .env
+# .env.local
+# .env.development.local
+# .env.test.local
+# .env.production.local
 
 # ---------------------------------
 # Testing and Coverage

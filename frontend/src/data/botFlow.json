@@ -1,0 +1,94 @@
+{
+    "botId": "support_bot_v1",
+    "language": "en",
+    "greeting": {
+        "message": "Hello 👋 Welcome to our support chat! How can I help you today?"
+    },
+    "steps": [
+        {
+            "id": "start",
+            "type": "options",
+            "message": "Please choose one of the following options:",
+            "options": [
+                {
+                    "label": "Product Information",
+                    "nextStep": "product_info"
+                },
+                {
+                    "label": "Pricing & Plans",
+                    "nextStep": "pricing"
+                },
+                {
+                    "label": "Technical Support",
+                    "nextStep": "tech_support"
+                },
+                {
+                    "label": "Connect with Agent",
+                    "action": "connect_agent"
+                }
+            ]
+        },
+        {
+            "id": "product_info",
+            "type": "message",
+            "message": "Our product helps you manage tasks, chats, and automation efficiently.",
+            "nextStep": "start"
+        },
+        {
+            "id": "pricing",
+            "type": "message",
+            "message": "We offer Free, Pro, and Enterprise plans. Would you like to talk to an agent?",
+            "options": [
+                {
+                    "label": "Yes, connect me",
+                    "action": "connect_agent"
+                },
+                {
+                    "label": "Go back",
+                    "nextStep": "start"
+                }
+            ]
+        },
+        {
+            "id": "tech_support",
+            "type": "options",
+            "message": "What issue are you facing?",
+            "options": [
+                {
+                    "label": "Login issue",
+                    "nextStep": "login_issue"
+                },
+                {
+                    "label": "Performance issue",
+                    "nextStep": "performance_issue"
+                },
+                {
+                    "label": "Other issue",
+                    "action": "connect_agent"
+                }
+            ]
+        },
+        {
+            "id": "login_issue",
+            "type": "message",
+            "message": "Please try resetting your password. If the issue continues, connect with an agent.",
+            "options": [
+                {
+                    "label": "Connect with Agent",
+                    "action": "connect_agent"
+                },
+                {
+                    "label": "Go back",
+                    "nextStep": "tech_support"
+                }
+            ]
+        }
+    ],
+    "actions": {
+        "connect_agent": {
+            "type": "handoff",
+            "message": "Connecting you to a live agent. Please wait…",
+            "queue": "support"
+        }
+    }
+}

@@ -16,9 +16,9 @@ const ChatWindow = ({ currentChat }) => {
   // 🧠 Listen for incoming messages
   useEffect(() => {
     if (!socket) return;
-    socket.on("receive-message", ({ from, message }) => {
+    socket.on("receive-message", ({ from, name, message }) => {
       console.log("📩 Received message from:", from, "Message:", message);
-      setMessages((prev) => [...prev, { from, message }]);
+      setMessages(prev => [...prev, { from, name, message }]); // ⭐ UPDATED
     });
 
     return () => socket.off("receive-message");
@@ -186,7 +186,7 @@ const rejectAudioCall = () => {
       <div className="messages">
         {messages.map((msg, i) => (
           <div key={i}>
-            <strong>{msg.from}:</strong> {msg.message}
+            <strong>{msg.name || msg.from}:</strong> {msg.message}
           </div>
         ))}
       </div>

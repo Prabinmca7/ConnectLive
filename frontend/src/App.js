@@ -18,7 +18,7 @@ function App() {
       {!user ? (
         <LaunchScreen onChatStart={handleChatStart} />
       ) : (
-        <ChatWindow user={user} agentId={agentId} />
+        <ChatWindow user={user} agentId={agentId}/>
       )}
     </SocketProvider>
   );

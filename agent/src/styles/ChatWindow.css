@@ -22,3 +22,113 @@
     color: #777;
   }
   
+
+
+  /* 🔔 Inline Incoming Call Bar */
+.incoming-call-inline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f1f5ff;
+  border: 1px solid #d0e2ff;
+  padding: 10px 15px;
+  border-radius: 10px;
+  margin: 10px 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  animation: slideDown 0.3s ease-out;
+}
+
+.call-text {
+  font-size: 1rem;
+  color: #333;
+  font-weight: 500;
+  flex: 1;
+}
+
+.call-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.accept-inline,
+.reject-inline {
+  border: none;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.3s ease;
+}
+
+.accept-inline {
+  background-color: #34a853;
+}
+
+.accept-inline:hover {
+  background-color: #2d8f47;
+  transform: scale(1.1);
+}
+
+.reject-inline {
+  background-color: #ea4335;
+}
+
+.reject-inline:hover {
+  background-color: #d93025;
+  transform: scale(1.1);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+
+
+
+
+.call-active-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f4f7ff;
+  border-top: 1px solid #dfe3ee;
+  padding: 10px 16px;
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+.call-active-bar audio {
+  flex: 1;
+  margin-right: 10px;
+}
+
+.end-call-btn {
+  background-color: #e53935;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.end-call-btn:hover {
+  background-color: #c62828;
+}

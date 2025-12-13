@@ -1,0 +1,20 @@
+.call-rejected-banner {
+    background-color: #ffe3e3;
+    color: #b00020;
+    padding: 10px;
+    text-align: center;
+    border-radius: 6px;
+    margin: 8px 16px;
+    font-weight: 500;
+  }
+
+  .call-rejected-banner {
+    background-color: #ffe3e3;
+    color: #b00020;
+    padding: 10px;
+    text-align: center;
+    border-radius: 6px;
+    margin: 8px 16px;
+    font-weight: 500;
+    animation: fadeIn 0.3s ease-in;
+  }

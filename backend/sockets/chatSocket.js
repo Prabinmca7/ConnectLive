@@ -56,5 +56,32 @@ socket.on("accept-chat", ({ customerId }) => {
       io.emit("agent-list", agents);
       console.log(`User disconnected: ${socket.id}`);
     });
+
+
+    // 🧠 WebRTC signaling events
+    socket.on("audio-offer", ({ to, offer }) => {
+      console.log("🎧 Forwarding audio offer to:", to);
+      io.to(to).emit("audio-offer", { from: socket.id, offer });
+    });
+
+    socket.on("audio-answer", ({ to, answer }) => {
+      console.log("📞 Forwarding audio answer to:", to);
+      io.to(to).emit("audio-answer", { from: socket.id, answer });
+    });
+
+    socket.on("ice-candidate", ({ to, candidate }) => {
+      io.to(to).emit("ice-candidate", { from: socket.id, candidate });
+    });
+
+    socket.on("call-rejected", ({ to }) => {
+      console.log(`🚫 Call rejected by agent ${socket.id}, notifying ${to}`);
+      io.to(to).emit("call-rejected", { from: socket.id });
+    });
+
+    socket.on("call-ended", ({ to }) => {
+      console.log(`🚫 Call Ended by agent ${socket.id}, notifying ${to}`);
+      io.to(to).emit("call-ended", { from: socket.id });
+    });
+
   });
 };

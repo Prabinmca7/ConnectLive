@@ -37,6 +37,7 @@ const LaunchScreen = ({ onChatStart }) => {
   };
 
   // Attach listeners once when socket connects
+
   useEffect(() => {
     if (!socket) return;
 
@@ -59,7 +60,9 @@ const LaunchScreen = ({ onChatStart }) => {
       socket.off("no-agents", handleNoAgents);
       socket.off("chat-accepted", handleChatAccepted);
     };
-  }, [socket]); // ✅ do NOT include formData or onChatStart in dependencies
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socket]); 
+  // ✅ do NOT include formData or onChatStart in dependencies
 
   return (
     <div className="launch-screen">

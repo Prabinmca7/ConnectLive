@@ -7,67 +7,67 @@ const ChatWindow = ({ currentChat }) => {
   const socket = useSocket();
   const [messages, setMessages] = useState([]);
 
-  // 🧠 Listen for incoming messages
+  /* Incoming live messages */
   useEffect(() => {
     if (!socket) return;
-    socket.on("receive-message", ({ from, name, message }) => {
-      console.log("📩 Received message from:", from, "Message:", message);
-      setMessages(prev => [...prev, { from, name, message }]); // ⭐ UPDATED
-    });
 
-    return () => socket.off("receive-message");
+    const handler = ({ name, message }) => {
+      setMessages(prev => [...prev, { from: name, message }]);
+    };
+
+    socket.on("receive-message", handler);
+    return () => socket.off("receive-message", handler);
   }, [socket]);
 
-  // 🧠 Load chat messages when switching chats
+  /* Full history on accept */
   useEffect(() => {
-    if (currentChat) {
-      setMessages(currentChat.messages || []);
-    }
-  }, [currentChat]);
+    if (!socket) return;
 
-  // 🚀 Send a message to the current customer
+    const handler = ({ history }) => {
+      setMessages(
+        history.map(m => ({
+          from: m.sender,
+          message: m.text
+        }))
+      );
+    };
+
+    socket.on("chat-history", handler);
+    return () => socket.off("chat-history", handler);
+  }, [socket]);
+
+  /* Switch chat */
+
+
   const sendMessage = (msg) => {
-    if (!msg.trim()) return;
+    if (!msg.trim() || !currentChat?.socketId) return;
 
-    if (!currentChat || !currentChat.socketId) {
-      console.warn("⚠️ Cannot send: No active customer or socketId missing.");
-      alert("Customer is not connected or chat has ended.");
-      return;
-    }
+    socket.emit("send-message", {
+      to: currentChat.socketId,
+      message: msg
+    });
 
-    console.log("💬 Sending to:", currentChat.socketId, "Message:", msg);
-
-    // 🔥 Send to backend to relay to customer
-    socket.emit("send-message", { to: currentChat.socketId, message: msg });
-
-    // ✅ Add to local message list
-    setMessages((prev) => [...prev, { from: "You", message: msg }]);
+    setMessages(prev => [...prev, { from: "You", message: msg }]);
   };
 
   if (!currentChat) {
-    return <div className="chat-window empty">Select a chat to start</div>;
+    return <div className="chat-window empty">Select a chat</div>;
   }
 
   return (
     <div className="chat-window">
       <div className="chat-header">
         <h3>{currentChat.name}</h3>
-        <p className="email">{currentChat.email}</p>
+        <p>{currentChat.email}</p>
       </div>
 
       <div className="messages">
-        {messages.map((msg, i) => (
-          <div key={i}>
-            <strong>{msg.name || msg.from}:</strong> {msg.message}
-          </div>
+        {messages.map((m, i) => (
+          <div key={i}><strong>{m.from}:</strong> {m.message}</div>
         ))}
       </div>
 
-      {currentChat.status === "ended" ? (
-        <div className="chat-ended">Chat has ended</div>
-      ) : (
-        <MessageInput onSend={sendMessage} />
-      )}
+      <MessageInput onSend={sendMessage} />
     </div>
   );
 };

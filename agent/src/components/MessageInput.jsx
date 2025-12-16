@@ -11,6 +11,8 @@ const MessageInput = ({ onSend }) => {
     }
   };
 
+  
+
   return (
     <footer className="chat-input">
       <input

@@ -1,109 +1,154 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef  } from "react";
 import { useSocket } from "../context/SocketContext";
 import botFlow from "../data/botFlow.json";
 
-export const useChat = (user, agentId, onConnectAgent) => {
+export const useChat = (user, onConnectAgent) => {
   const socket = useSocket();
 
   const [chat, setChat] = useState([]);
   const [currentStep, setCurrentStep] = useState(null);
   const [isBotActive, setIsBotActive] = useState(true);
+  const [agentId, setAgentId] = useState(null);
 
-  // Load greeting + start flow
+
+  // prevents duplicate "no agents" handling
+  const waitingForAgentRef = useRef(false);
+
+
+  /* ---------------- HELPERS ---------------- */
+
+  const pushMessage = (msg) => {
+    if (!msg?.text) return;
+
+    setChat((prev) => {
+      const last = prev[prev.length - 1];
+      if (last?.text === msg.text && last?.sender === msg.sender) {
+        return prev; // ❌ prevent duplicates
+      }
+      return [...prev, msg];
+    });
+  };
+
+  const goToStep = useCallback((stepId) => {
+    const step = botFlow.steps.find((s) => s.id === stepId);
+    if (!step) return;
+
+    setCurrentStep(step);
+
+    if (step.message) {
+      pushMessage({ sender: "Bot", text: step.message });
+    }
+  }, []);
+
+
+  /* ---------------- INIT ---------------- */
+
   useEffect(() => {
-    const startStep = botFlow.steps.find(s => s.id === "start");
+    const start = botFlow.steps.find((s) => s.id === "start");
 
     setChat([
       { sender: "Bot", text: botFlow.greeting.message },
-      { sender: "Bot", text: startStep.message }
+      { sender: "Bot", text: start.message }
     ]);
 
-    setCurrentStep(startStep);
+    setCurrentStep(start);
   }, []);
 
-  // RECEIVE messages from agent
+  /* ---------------- SOCKET ---------------- */
+
   useEffect(() => {
     if (!socket) return;
 
     socket.on("receive-message", ({ message }) => {
-      setIsBotActive(false);
-      setChat(prev => [...prev, {
-        sender: "System", text: "✅ Connected with agent. You can now chat directly."
-      }]);
-    });
-
-    return () => socket.off("receive-message");
-  }, [socket]);
-
-  // Handle User Connect Request
-  useEffect(() => {
-    if (!socket) return;
-
-    socket.on("no-agents", (msg) => {
-      setChat(prev => [...prev, { sender: "Bot", text: msg }]);
-
-      // Bot continues after message
-      const startStep = botFlow.steps.find(s => s.id === "start");
-      setCurrentStep(startStep);
-
-      setChat(prev => [
-        ...prev,
-        { sender: "Bot", text: startStep.message }
-      ]);
+      pushMessage({ sender: "Agent", text: message });
     });
 
     socket.on("chat-accepted", ({ agentId }) => {
       setIsBotActive(false);
-      onConnectAgent(agentId);
+      setAgentId(agentId);
+      setCurrentStep(null); // 🔥 stop bot completely
 
-      setChat(prev => [
-        ...prev,
-        { sender: "Bot", text: "Agent connected. You can chat now." }
-      ]);
+      onConnectAgent?.(agentId);
+
+      pushMessage({
+        sender: "Bot",
+        text: "Agent connected. You can chat now."
+      });
     });
 
-    return () => {
-      socket.off("no-agents");
-      socket.off("chat-accepted");
-    };
-  }, [socket]);
+    socket.on("no-agents", (msg) => {
+      pushMessage({ sender: "Bot", text: msg });
+      goToStep("start");
+    });
 
-  // BOT FLOW HANDLER
-  const handleBotFlow = (stepOrAction) => {
-    const action = botFlow.actions[stepOrAction];
-    if (action) {
-      setChat(prev => [...prev, { sender: "Bot", text: action.message }]);
+    return () => socket.removeAllListeners();
+  }, [socket, goToStep, onConnectAgent]);
 
-      if (action.type === "handoff") {
-        socket.emit("customer-request", user);
+  /* ---------------- BOT FLOW ---------------- */
+
+  const runFlow = (text) => {
+    if (!isBotActive || !currentStep) return;
+
+    if (currentStep.type === "options") {
+      const input = text.toLowerCase();
+
+      const option = currentStep.options.find((o) =>
+        o.label.toLowerCase().includes(input)
+      );
+
+      if (!option) {
+        pushMessage({
+          sender: "Bot",
+          text: "Please select one of the options above 👆"
+        });
+        return;
       }
 
-      return;
+      if (option.action === "connect_agent") {
+        pushMessage({ sender: "Bot", text: "Connecting to an agent..." });
+        socket.emit("check-agents-availability");
+        socket.emit("customer-request", user);
+        return;
+      }
+
+      if (option.nextStep) {
+        goToStep(option.nextStep);
+      }
     }
-
-    const next = botFlow.steps.find(s => s.id === stepOrAction);
-    if (!next) return;
-
-    setCurrentStep(next);
-    setChat(prev => [...prev, { sender: "Bot", text: next.message }]);
   };
 
-  const sendMessage = (msg, flowAction) => {
-    // Option clicked
-    if (flowAction) {
-      setChat(prev => [...prev, { sender: "You", text: "✔ " + flowAction }]);
-      handleBotFlow(flowAction);
-      return;
-    }
+  /* ---------------- SEND MESSAGE ---------------- */
 
-    // User typed
-    setChat(prev => [...prev, { sender: "You", text: msg }]);
+  const sendMessage = (text) => {
+    if (!text.trim()) return;
 
-    // If chatting with agent
+    pushMessage({ sender: "You", text });
+
+    // Agent chat
     if (!isBotActive && agentId) {
-      socket.emit("send-message", { to: agentId, message: msg });
+      socket.emit("send-message", {
+        to: agentId,
+        message: text
+      });
+      return;
     }
+
+    // Bot chat
+    runFlow(text);
   };
 
-  return { chat, sendMessage, currentStep };
+  const selectOption = (label) => {
+    pushMessage({ sender: "You", text: label });
+    runFlow(label);
+  };
+
+  return {
+    chat,
+    currentStep,
+    isBotActive,
+    sendMessage,
+    selectOption
+  };
 };
+
+export default useChat;

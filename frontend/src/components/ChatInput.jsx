@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FaPaperPlane } from "react-icons/fa";
 import "../styles/Chat.css";
 
-const ChatInput = ({ onSend }) => {
+const ChatInput = ({ onSend, isBotActive }) => {
   const [message, setMessage] = useState("");
 
   const handleSend = () => {
@@ -16,7 +16,9 @@ const ChatInput = ({ onSend }) => {
     <footer className="chat-input">
       <input
         type="text"
-        placeholder="Type a message..."
+        placeholder={
+          isBotActive ? "Type a message..." : "Chatting with agent..."
+        }
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && handleSend()}

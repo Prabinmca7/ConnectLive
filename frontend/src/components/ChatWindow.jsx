@@ -4,12 +4,16 @@ import ChatBox from "./ChatBox";
 import ChatInput from "./ChatInput";
 import { useChat } from "../hooks/useChat";
 
-const ChatWindow = ({ user, agentId, onConnectAgent }) => {
-  const { chat, sendMessage, currentStep, isBotActive } = useChat(
-    user,
+const ChatWindow = ({ user, onConnectAgent }) => {
+  const {
+    chat,
+    sendMessage,
+    showFeedback,
+    endChat,
     agentId,
-    onConnectAgent
-  );
+    currentStep,
+    isBotActive
+  } = useChat(user, onConnectAgent);
 
   const handleOptionClick = (option) => {
     sendMessage(option.label);
@@ -26,9 +30,26 @@ const ChatWindow = ({ user, agentId, onConnectAgent }) => {
         onOptionClick={handleOptionClick}
       />
 
+      {showFeedback && (
+        <div className="feedback-box">
+          <p>How was your experience?</p>
+
+          <button onClick={() => alert("👍 Thanks!")}>👍 Good</button>
+          <button onClick={() => alert("😐 Thanks!")}>😐 Okay</button>
+          <button onClick={() => alert("👎 Thanks!")}>👎 Bad</button>
+        </div>
+      )}
+
       <ChatInput onSend={sendMessage} isBotActive={isBotActive} />
+
+      {agentId && (
+        <button className="end-chat-btn" onClick={endChat}>
+          End Chat
+        </button>
+      )}
     </div>
   );
 };
+
 
 export default ChatWindow;

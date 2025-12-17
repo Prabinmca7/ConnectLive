@@ -43,6 +43,25 @@ const Sidebar = ({ setCurrentChat }) => {
     return () => socket.off("chat-request");
   }, [socket]);
 
+
+  // 🔚 Listen for chat end
+  useEffect(() => {
+    if (!socket) return;
+
+    const handler = ({ customerId }) => {
+      setChats(prev =>
+        prev.map(chat =>
+          chat.socketId === customerId
+            ? { ...chat, status: "ended" }
+            : chat
+        )
+      );
+    };
+
+    socket.on("chat-ended", handler);
+    return () => socket.off("chat-ended", handler);
+  }, [socket]);
+
   // ✅ Accept incoming chat request
   const acceptChat = async (customer) => {
     if (!socket || !customer) return;

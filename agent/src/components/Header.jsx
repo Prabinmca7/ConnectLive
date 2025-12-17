@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { FaUserCircle, FaSignOutAlt, FaCircle } from "react-icons/fa";
 import { useSocket } from "../context/SocketContext";
 import "../styles/Header.css";
@@ -7,20 +7,25 @@ const Header = ({ agent, onLogout }) => {
   const socket = useSocket();
   const [online, setOnline] = useState(true);
 
-  // Notify backend immediately after component mounts
+  // Notify backend when component mounts
   useEffect(() => {
     if (socket) {
       socket.emit("agent-online", { name: agent.username });
+      setOnline(true);
     }
   }, [socket, agent.username]);
 
   const toggleOnline = () => {
-    if (online) {
-      socket.emit("agent-offline");
-    } else {
-      socket.emit("agent-online", { name: agent.username });
+    const newStatus = !online;
+    setOnline(newStatus);
+
+    if (socket) {
+      if (newStatus) {
+        socket.emit("agent-online", { name: agent.username });
+      } else {
+        socket.emit("agent-offline");
+      }
     }
-    setOnline(!online);
   };
 
   return (

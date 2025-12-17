@@ -1,4 +1,3 @@
-
 /* chatbot options */
 
 .chat-options {
@@ -24,4 +23,142 @@
 .chat-option-btn:hover {
     background-color: #0d6efd;
     color: white;
+}
+
+/* End Chat Button */
+
+.end-chat-btn {
+    margin-top: 10px;
+    padding: 10px 16px;
+    background-color: #e53935;
+    /* red */
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.1s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.end-chat-btn:hover {
+    background-color: #d32f2f;
+}
+
+.end-chat-btn:active {
+    transform: scale(0.97);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.end-chat-btn:disabled {
+    background-color: #bdbdbd;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* feedback */
+
+.feedback-box {
+    position: relative;
+    margin: 16px;
+    padding: 16px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    text-align: center;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.feedback-box p {
+    margin-bottom: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #374151;
+}
+
+/* Buttons container (optional but recommended) */
+.feedback-box button {
+    margin: 0 6px;
+    padding: 10px 16px;
+    font-size: 14px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* 👍 Good */
+.feedback-box button:nth-child(2) {
+    background: #dcfce7;
+    color: #166534;
+}
+
+/* 😐 Okay */
+.feedback-box button:nth-child(3) {
+    background: #fef9c3;
+    color: #854d0e;
+}
+
+/* 👎 Bad */
+.feedback-box button:nth-child(4) {
+    background: #fee2e2;
+    color: #7f1d1d;
+}
+
+.feedback-box button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.feedback-box button:active {
+    transform: scale(0.95);
+}
+
+/* Fade animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+.chat-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    /* spacing between icons */
+}
+
+.chat-actions svg,
+.chat-actions .user-logout-btn {
+    cursor: pointer;
+    font-size: 20px;
+    color: #fff;
+    /* icon color */
+    padding: 6px;
+    border-radius: 6px;
+    transition: all 0.2s ease-in-out;
+    background-color: transparent;
+    /* keep it flat like other icons */
+}
+
+.chat-actions svg:hover,
+.chat-actions .user-logout-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    /* subtle hover effect */
+    transform: scale(1.1);
+}
+
+.user-logout-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
 }

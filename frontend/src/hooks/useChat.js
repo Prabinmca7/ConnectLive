@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef  } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSocket } from "../context/SocketContext";
 import botFlow from "../data/botFlow.json";
 
@@ -9,24 +9,11 @@ export const useChat = (user, onConnectAgent) => {
   const [currentStep, setCurrentStep] = useState(null);
   const [isBotActive, setIsBotActive] = useState(true);
   const [agentId, setAgentId] = useState(null);
-
-
-  // prevents duplicate "no agents" handling
-  const waitingForAgentRef = useRef(false);
-
-
-  /* ---------------- HELPERS ---------------- */
+  const [showFeedback, setShowFeedback] = useState(false);
 
   const pushMessage = (msg) => {
     if (!msg?.text) return;
-
-    setChat((prev) => {
-      const last = prev[prev.length - 1];
-      if (last?.text === msg.text && last?.sender === msg.sender) {
-        return prev; // ❌ prevent duplicates
-      }
-      return [...prev, msg];
-    });
+    setChat((prev) => [...prev, msg]);
   };
 
   const goToStep = useCallback((stepId) => {
@@ -34,28 +21,22 @@ export const useChat = (user, onConnectAgent) => {
     if (!step) return;
 
     setCurrentStep(step);
-
-    if (step.message) {
+    if (step.type !== "dynamic" && step.message) {
       pushMessage({ sender: "Bot", text: step.message });
     }
   }, []);
 
-
-  /* ---------------- INIT ---------------- */
-
+  /* ================= INIT CHAT ================= */
   useEffect(() => {
     const start = botFlow.steps.find((s) => s.id === "start");
-
     setChat([
       { sender: "Bot", text: botFlow.greeting.message },
       { sender: "Bot", text: start.message }
     ]);
-
     setCurrentStep(start);
   }, []);
 
-  /* ---------------- SOCKET ---------------- */
-
+  /* ================= SOCKET EVENTS ================= */
   useEffect(() => {
     if (!socket) return;
 
@@ -66,14 +47,10 @@ export const useChat = (user, onConnectAgent) => {
     socket.on("chat-accepted", ({ agentId }) => {
       setIsBotActive(false);
       setAgentId(agentId);
-      setCurrentStep(null); // 🔥 stop bot completely
+      setCurrentStep(null);
 
       onConnectAgent?.(agentId);
-
-      pushMessage({
-        sender: "Bot",
-        text: "Agent connected. You can chat now."
-      });
+      pushMessage({ sender: "Bot", text: "👨‍💼 Agent connected. You can chat now." });
     });
 
     socket.on("no-agents", (msg) => {
@@ -81,59 +58,127 @@ export const useChat = (user, onConnectAgent) => {
       goToStep("start");
     });
 
+    socket.on("chat-ended", ({ message, showFeedback }) => {
+      pushMessage({ sender: "Bot", text: message });
+
+      setAgentId(null);
+      setIsBotActive(true);
+      setShowFeedback(!!showFeedback);
+
+      goToStep("start");
+
+      if (showFeedback) {
+        // TODO: Show feedback modal
+        console.log("💬 Show feedback prompt to user");
+      }
+    });
+
     return () => socket.removeAllListeners();
   }, [socket, goToStep, onConnectAgent]);
 
-  /* ---------------- BOT FLOW ---------------- */
+  /* ================= AUTO-END CHAT ON CLOSE / REFRESH ================= */
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (agentId) {
+        socket.emit("end-chat");
+      }
+    };
 
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [agentId, socket]);
+
+  /* ================= CHAT FLOW ================= */
   const runFlow = (text) => {
     if (!isBotActive || !currentStep) return;
 
-    if (currentStep.type === "options") {
-      const input = text.toLowerCase();
+    const userText = text.toLowerCase().trim();
 
-      const option = currentStep.options.find((o) =>
-        o.label.toLowerCase().includes(input)
-      );
+    /* INPUT STEP */
+    if (currentStep.type === "input") {
+      pushMessage({ sender: "Bot", text: "Thanks for sharing 👍" });
+      if (currentStep.inputNext) goToStep(currentStep.inputNext);
+      else goToStep("start");
+      return;
+    }
 
-      if (!option) {
+    /* YES / NO STEP */
+    if (currentStep.type === "yes_no") {
+      if (userText.startsWith("y")) { goToStep(currentStep.yesNext); return; }
+      if (userText.startsWith("n")) { goToStep(currentStep.noNext); return; }
+      if (userText.includes("start") || userText.includes("menu") || userText.includes("back")) {
+        goToStep("start");
+        return;
+      }
+      pushMessage({
+        sender: "Bot",
+        text: "Please reply with **Yes** or **No**, or type **menu** 🙂"
+      });
+    }
+
+    /* DYNAMIC STEP */
+    if (currentStep.type === "dynamic") {
+      if (userText.includes("product")) {
         pushMessage({
           sender: "Bot",
-          text: "Please select one of the options above 👆"
+          text: "We offer a task management platform with automation, analytics, and real-time chat support."
         });
-        return;
+        goToStep("start"); return;
       }
-
-      if (option.action === "connect_agent") {
-        pushMessage({ sender: "Bot", text: "Connecting to an agent..." });
-        socket.emit("check-agents-availability");
-        socket.emit("customer-request", user);
-        return;
-      }
-
-      if (option.nextStep) {
-        goToStep(option.nextStep);
-      }
+      if (userText.includes("price") || userText.includes("cost")) { goToStep("pricing_main"); return; }
+      if (userText.includes("support") || userText.includes("issue")) { goToStep("tech_support"); return; }
+      pushMessage({
+        sender: "Bot",
+        text: "That’s a great question 🤔\n\nI can connect you with a live agent, or you can explore options below."
+      });
+      goToStep("start"); return;
     }
+
+    /* EXACT OPTION MATCH */
+    const option = currentStep.options?.find(opt => opt.label.toLowerCase() === userText);
+    if (option) {
+      if (option.action === "connect_agent") {
+        pushMessage({ sender: "Bot", text: "Connecting you to a live agent..." });
+        socket.emit("customer-request", { name: user.name, history: chat });
+        return;
+      }
+      if (option.nextStep) { goToStep(option.nextStep); return; }
+    }
+
+    /* GLOBAL KEYWORD ROUTING */
+    if (userText.includes("agent") || userText.includes("human")) {
+      pushMessage({ sender: "Bot", text: "Connecting you to a live agent..." });
+      socket.emit("customer-request", { name: user.name, history: chat });
+      return;
+    }
+
+    if (userText.includes("price")) { goToStep("pricing_main"); return; }
+    if (userText.includes("support")) { goToStep("tech_support"); return; }
+
+    /* UNIVERSAL FALLBACK */
+    pushMessage({
+      sender: "Bot",
+      text:
+        "I didn’t fully understand that 🤔\n\n" +
+        "You can:\n" +
+        "• Choose an option below\n" +
+        "• Ask about pricing or support\n" +
+        "• Type **agent** to talk to a human"
+    });
+    goToStep("start");
   };
 
-  /* ---------------- SEND MESSAGE ---------------- */
-
+  /* ================= SEND MESSAGE ================= */
   const sendMessage = (text) => {
     if (!text.trim()) return;
 
     pushMessage({ sender: "You", text });
 
-    // Agent chat
     if (!isBotActive && agentId) {
-      socket.emit("send-message", {
-        to: agentId,
-        message: text
-      });
+      socket.emit("send-message", { to: agentId, message: text });
       return;
     }
 
-    // Bot chat
     runFlow(text);
   };
 
@@ -142,12 +187,25 @@ export const useChat = (user, onConnectAgent) => {
     runFlow(label);
   };
 
+  const endChat = () => {
+    if (!agentId) return;
+
+    socket.emit("end-chat");
+    setAgentId(null);
+    setIsBotActive(true);
+    goToStep("start");
+    pushMessage({ sender: "Bot", text: "You have ended the chat. Returning to bot..." });
+  };
+
   return {
     chat,
     currentStep,
     isBotActive,
+    agentId,
+    showFeedback,
     sendMessage,
-    selectOption
+    selectOption,
+    endChat
   };
 };
 

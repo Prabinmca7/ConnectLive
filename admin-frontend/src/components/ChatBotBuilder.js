@@ -28,13 +28,14 @@ const ChatBotBuilder = () => {
   const onNodesChange = useCallback((chs) => setNodes((nds) => applyNodeChanges(chs, nds)), []);
   const onEdgesChange = useCallback((chs) => setEdges((eds) => applyEdgeChanges(chs, eds)), []);
   const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), []);
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
   // --- LOAD FLOW ---
   useEffect(() => {
     const loadFlow = async () => {
       const flowId = "694919325b172d8248c9b654"; // Replace with dynamic ID later
       try {
-        const response = await fetch(`http://localhost:5000/api/flows/${flowId}`);
+        const response = await fetch(`${API_BASE_URL}/api/flows/${flowId}`);
         if (response.ok) {
           const data = await response.json();
           setNodes(data.nodes || []);
@@ -59,7 +60,7 @@ const ChatBotBuilder = () => {
       };
 
       try {
-        const response = await fetch('http://localhost:5000/api/flows/save', {
+        const response = await fetch('${API_BASE_URL}/api/flows/save', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),

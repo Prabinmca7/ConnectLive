@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import ReactFlow, { 
   addEdge, 
   Background, 
@@ -15,8 +15,9 @@ import './App.css';
 
 const nodeTypes = CustomNodes;
 
+// ID counter for NEW nodes created during the session
 let id = 0;
-const getId = () => `node_${id++}`;
+const getId = () => `node_${Date.now()}_${id++}`;
 
 const FlowBuilder = () => {
   const reactFlowWrapper = useRef(null);
@@ -30,6 +31,61 @@ const FlowBuilder = () => {
   const onEdgesChange = useCallback((chs) => setEdges((eds) => applyEdgeChanges(chs, eds)), []);
   const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), []);
 
+  // --- 1. FIXED LOAD LOGIC ---
+  useEffect(() => {
+    const loadFlow = async () => {
+      const flowId = "694919325b172d8248c9b654"; 
+      if (!flowId) return;
+
+      try {
+        const response = await fetch(`http://localhost:5000/api/flows/${flowId}`);
+        if (!response.ok) throw new Error("Failed to fetch");
+        
+        const data = await response.json();
+
+        if (data) {
+          // Use functional updates to ensure state is set correctly
+          setNodes(data.nodes || []);
+          setEdges(data.edges || []);
+          console.log("Data loaded successfully");
+        }
+      } catch (err) {
+        console.error("Load Error:", err);
+      }
+    };
+    
+    loadFlow();
+  }, []); // Empty dependency array means this runs ONCE on mount
+
+  // --- 2. FIXED SAVE LOGIC ---
+  const onSave = useCallback(async () => {
+    if (reactFlowInstance) {
+      const flow = reactFlowInstance.toObject();
+      
+      // We pass 'id' if we want to update the specific record
+      const payload = {
+        id: "694919325b172d8248c9b654", // Hardcoded for your test
+        nodes: flow.nodes,
+        edges: flow.edges,
+        viewport: flow.viewport
+      };
+
+      try {
+        const response = await fetch('http://localhost:5000/api/flows/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        
+        const savedData = await response.json();
+        alert('Flow Saved Successfully!');
+        console.log('Saved result:', savedData);
+      } catch (err) {
+        alert('Save Failed!');
+      }
+    }
+  }, [reactFlowInstance]);
+
   const onDragStart = (event, nodeType) => {
     event.dataTransfer.setData('application/reactflow', nodeType);
     event.dataTransfer.effectAllowed = 'move';
@@ -38,7 +94,7 @@ const FlowBuilder = () => {
   const onDrop = useCallback((event) => {
     event.preventDefault();
     const type = event.dataTransfer.getData('application/reactflow');
-    if (!type) return;
+    if (!type || !reactFlowInstance) return;
 
     const reactFlowBounds = reactFlowWrapper.current.getBoundingClientRect();
     const position = reactFlowInstance.project({
@@ -64,16 +120,6 @@ const FlowBuilder = () => {
     setNodes((nds) => nds.map((n) => n.id === selectedNode.id ? { ...n, data: { ...n.data, ...newData } } : n));
     setSelectedNode(prev => ({ ...prev, data: { ...prev.data, ...newData } }));
   };
-
-  // --- NEW SAVE FUNCTION ---
-  const onSave = useCallback(() => {
-    if (reactFlowInstance) {
-      const flow = reactFlowInstance.toObject();
-      console.log('--- SAVED CHATBOT JSON ---');
-      console.log(JSON.stringify(flow, null, 2));
-      alert('Flow saved to console log!');
-    }
-  }, [reactFlowInstance]);
 
   return (
     <div className="main-wrapper">

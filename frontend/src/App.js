@@ -18,7 +18,11 @@ function App() {
       {!user ? (
         <LaunchScreen onChatStart={handleChatStart} />
       ) : (
-        <ChatWindow user={user} agentId={agentId}/>
+        <ChatWindow user={user} agentId={agentId}
+          onChatStart={(userData, agent) => {
+            setUser(userData);
+            setAgentId(agent);
+          }} />
       )}
     </SocketProvider>
   );

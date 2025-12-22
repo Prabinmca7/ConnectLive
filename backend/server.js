@@ -17,6 +17,10 @@ app.use(express.json());
 // Routes
 app.use("/api/agents", agentRoutes);
 
+import chatRoutes from "./routes/chatRoutes.js";
+app.use("/api/chats", chatRoutes);
+
+
 // HTTP server + Socket.io
 const server = http.createServer(app);
 const io = new Server(server, {

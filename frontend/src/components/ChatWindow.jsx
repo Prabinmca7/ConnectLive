@@ -1,21 +1,32 @@
-import React, { useState } from "react";
+import React from "react";
 import ChatHeader from "./ChatHeader";
 import ChatBox from "./ChatBox";
 import ChatInput from "./ChatInput";
 import { useChat } from "../hooks/useChat";
-import botFlow from "../data/botFlow.json"; // Save JSON separately
 
-const ChatWindow = ({ user, agentId }) => {
+const ChatWindow = ({ user, agentId, onConnectAgent }) => {
+  const { chat, sendMessage, currentStep, isBotActive } = useChat(
+    user,
+    agentId,
+    onConnectAgent
+  );
 
-  
-  const { chat, sendMessage } = useChat(user, agentId);
-  const currentChat= { ...user, agentSocketId: agentId };
+  const handleOptionClick = (option) => {
+    sendMessage(option.label);
+  };
 
   return (
     <div className="chat-container">
-      <ChatHeader currentChat={currentChat} />
-      <ChatBox chat={chat} />
-      <ChatInput onSend={sendMessage} />
+      <ChatHeader />
+
+      <ChatBox
+        chat={chat}
+        currentStep={currentStep}
+        isBotActive={isBotActive}
+        onOptionClick={handleOptionClick}
+      />
+
+      <ChatInput onSend={sendMessage} isBotActive={isBotActive} />
     </div>
   );
 };

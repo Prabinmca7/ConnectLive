@@ -2,7 +2,13 @@
     "botId": "support_bot_v1",
     "language": "en",
     "greeting": {
-        "message": "Hello 👋 Welcome to our support chat! How can I help you today?"
+        "message": "Hello 👋 Welcome to our support chat! How can I assist you today?",
+        "options": [
+            "FAQs",
+            "Common Issues",
+            "Quick Actions",
+            "Connect with Agent"
+        ]
     },
     "steps": [
         {
@@ -16,72 +22,210 @@
                 },
                 {
                     "label": "Pricing & Plans",
-                    "nextStep": "pricing"
+                    "nextStep": "pricing_main"
                 },
                 {
                     "label": "Technical Support",
                     "nextStep": "tech_support"
                 },
                 {
+                    "label": "Ask Any Question",
+                    "nextStep": "ask_question"
+                },
+                {
+                    "label": "Restart Chat",
+                    "nextStep": "start"
+                },
+                {
                     "label": "Connect with Agent",
                     "action": "connect_agent"
                 }
             ]
         },
+        
+
+        
         {
             "id": "product_info",
-            "type": "message",
-            "message": "Our product helps you manage tasks, chats, and automation efficiently.",
-            "nextStep": "start"
-        },
-        {
-            "id": "pricing",
-            "type": "message",
-            "message": "We offer Free, Pro, and Enterprise plans. Would you like to talk to an agent?",
+            "type": "options",
+            "message": "What would you like to know about our product?",
             "options": [
                 {
-                    "label": "Yes, connect me",
-                    "action": "connect_agent"
+                    "label": "Features",
+                    "nextStep": "product_features"
                 },
                 {
-                    "label": "Go back",
+                    "label": "How it works",
+                    "nextStep": "product_how_it_works"
+                },
+                {
+                    "label": "Back to Start",
                     "nextStep": "start"
                 }
             ]
         },
+        {
+            "id": "product_features",
+            "type": "message",
+            "message": "Our product offers task management, automation, and real-time chat support.",
+            "nextStep": "start"
+        },
+        {
+            "id": "product_how_it_works",
+            "type": "message",
+            "message": "You can use the dashboard to manage tasks, connect with agents, and automate workflows easily.",
+            "nextStep": "start"
+        },
+        
+
+
+        {
+            "id": "pricing_main",
+            "type": "options",
+            "message": "Do you want to view pricing details or talk to an agent?",
+            "options": [
+                {
+                    "label": "Show Pricing",
+                    "nextStep": "show_pricing"
+                },
+                {
+                    "label": "Talk to Agent About Pricing",
+                    "action": "connect_agent"
+                },
+                {
+                    "label": "Back",
+                    "nextStep": "start"
+                }
+            ]
+        },
+        {
+            "id": "show_pricing",
+            "type": "message",
+            "message": "Our plans start at $19/month for basic access and go up to $99/month for enterprise features.",
+            "nextStep": "pricing_followup"
+        },
+        {
+            "id": "pricing_followup",
+            "type": "yes_no",
+            "message": "Would you like help choosing the right plan?",
+            "yesNext": "ask_business_size",
+            "noNext": "start"
+        },
+        {
+            "id": "ask_business_size",
+            "type": "input",
+            "message": "Great! What is the size of your team? (e.g., 1, 5, 20)",
+            "inputNext": "recommend_plan"
+        },
+        {
+            "id": "recommend_plan",
+            "type": "dynamic",
+            "message": "plan_recommendation_based_on_team"
+        },
+        
+
+
         {
             "id": "tech_support",
             "type": "options",
             "message": "What issue are you facing?",
             "options": [
                 {
-                    "label": "Login issue",
+                    "label": "Login Issue",
                     "nextStep": "login_issue"
                 },
                 {
-                    "label": "Performance issue",
+                    "label": "Performance Issue",
                     "nextStep": "performance_issue"
                 },
                 {
-                    "label": "Other issue",
-                    "action": "connect_agent"
+                    "label": "Other Issue",
+                    "nextStep": "other_issue"
                 }
             ]
         },
         {
             "id": "login_issue",
+            "type": "yes_no",
+            "message": "Are you unable to log in due to password issues?",
+            "yesNext": "suggest_password_reset",
+            "noNext": "connect_agent"
+        },
+        {
+            "id": "suggest_password_reset",
             "type": "message",
-            "message": "Please try resetting your password. If the issue continues, connect with an agent.",
+            "message": "Please try resetting your password using ‘Forgot Password’. If it still doesn’t work, you can connect with an agent.",
             "options": [
                 {
                     "label": "Connect with Agent",
                     "action": "connect_agent"
                 },
                 {
-                    "label": "Go back",
+                    "label": "Back",
                     "nextStep": "tech_support"
                 }
             ]
+        },
+        {
+            "id": "performance_issue",
+            "type": "options",
+            "message": "Is the app slow or not loading?",
+            "options": [
+                {
+                    "label": "App is slow",
+                    "nextStep": "slow_fix"
+                },
+                {
+                    "label": "App not loading",
+                    "nextStep": "loading_fix"
+                }
+            ]
+        },
+        {
+            "id": "slow_fix",
+            "type": "message",
+            "message": "Try clearing cache or restarting the app. If the issue persists connect with an agent.",
+            "nextStep": "tech_support"
+        },
+        {
+            "id": "loading_fix",
+            "type": "message",
+            "message": "Please check your internet connection and try again. If still not working, connect with an agent.",
+            "nextStep": "tech_support"
+        },
+        {
+            "id": "other_issue",
+            "type": "input",
+            "message": "Please describe your issue briefly:",
+            "inputNext": "other_issue_response"
+        },
+        {
+            "id": "other_issue_response",
+            "type": "message",
+            "message": "Thank you for the details. An agent will assist you further.",
+            "options": [
+                {
+                    "label": "Connect with Agent",
+                    "action": "connect_agent"
+                },
+                {
+                    "label": "Back to Start",
+                    "nextStep": "start"
+                }
+            ]
+        },
+
+
+        {
+            "id": "ask_question",
+            "type": "input",
+            "message": "Sure! What would you like to ask?",
+            "inputNext": "answer_custom_question"
+        },
+        {
+            "id": "answer_custom_question",
+            "type": "dynamic",
+            "message": "auto_answer_or_handoff"
         }
     ],
     "actions": {

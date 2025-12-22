@@ -1,0 +1,122 @@
+.main-wrapper { width: 100vw; height: 100vh; display: flex; flex-direction: column; font-family: sans-serif; overflow: hidden; }
+.navbar { height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; background: #0f172a; color: white; }
+.builder-container { display: flex; flex-grow: 1; height: calc(100vh - 60px); }
+.sidebar { width: 200px; padding: 20px; background: #f8fafc; border-right: 1px solid #e2e8f0; }
+.sidebar.settings { border-right: none; border-left: 1px solid #e2e8f0; width: 250px; }
+.dndnode { padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px; cursor: grab; background: white; text-align: center; font-size: 14px; }
+.test-btn { background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+.flow-container { flex-grow: 1; background: #f1f5f9; }
+
+/* Settings Panel */
+.settings-panel label { display: block; font-size: 12px; margin: 10px 0 5px; color: #64748b; font-weight: bold; }
+.settings-panel input, .settings-panel select { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; }
+.delete-btn { width: 100%; padding: 8px; background: #ef4444; color: white; border: none; border-radius: 4px; margin-top: 20px; cursor: pointer; }
+
+/* Chat Preview */
+.preview-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; justify-content: center; align-items: center; }
+.chat-window { width: 380px; height: 550px; background: white; border-radius: 15px; display: flex; flex-direction: column; overflow: hidden; }
+.chat-header { background: #2563eb; color: white; padding: 15px; display: flex; justify-content: space-between; font-weight: bold; }
+.chat-content { flex-grow: 1; padding: 20px; background: #f1f5f9; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+.chat-bubble { padding: 10px 14px; border-radius: 12px; max-width: 80%; font-size: 14px; }
+.chat-bubble.bot { background: white; align-self: flex-start; border: 1px solid #e2e8f0; }
+.chat-bubble.user { background: #2563eb; color: white; align-self: flex-end; }
+.action-btn { background: white; border: 1px solid #2563eb; color: #2563eb; padding: 8px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 5px; transition: 0.2s; }
+.action-btn:hover { background: #2563eb; color: white; }
+.input-form { display: flex; background: white; border: 1px solid #ddd; padding: 5px; border-radius: 8px; }
+.input-form input { flex-grow: 1; border: none; outline: none; padding: 5px; }
+.input-form button { background: #2563eb; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; }
+.nav-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.save-btn {
+  background: transparent;
+  color: white;
+  border: 1px solid #3b82f6;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.save-btn:hover {
+  background: rgba(59, 130, 246, 0.1);
+}
+.dndnode.agent { border-left: 4px solid #f43f5e; }
+.dndnode.end { border-left: 4px solid #64748b; }
+
+/* Optional: Improve textarea look in settings */
+.settings-panel textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+.chat-content {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  overflow-y: auto;
+  background: #f1f5f9;
+}
+
+.chat-bubble {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 15px;
+  max-width: 85%;
+}
+
+.chat-bubble.bot {
+  align-self: flex-start;
+}
+
+.chat-bubble.user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 8px;
+  flex-shrink: 0;
+}
+
+.bot .avatar { background: #3b82f6; color: white; }
+.user .avatar { background: #1e293b; color: white; }
+
+.message-text {
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.4;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.bot .message-text { background: white; border: 1px solid #e2e8f0; border-top-left-radius: 2px; }
+.user .message-text { background: #3b82f6; color: white; border-top-right-radius: 2px; }
+
+.options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.action-btn.next { border-color: #3b82f6; color: #3b82f6; }
+.action-btn.agent { border-color: #e11d48; color: #e11d48; }
+/* Add this to App.css if not there */
+.chat-bubble {
+  margin-bottom: 20px; /* Provides space between the duplicate-looking bubbles */
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

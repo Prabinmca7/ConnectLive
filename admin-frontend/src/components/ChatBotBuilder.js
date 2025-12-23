@@ -60,7 +60,7 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
       };
 
       try {
-        const response = await fetch('${API_BASE_URL}/api/flows/save', {
+        const response = await fetch(`${API_BASE_URL}/api/flows/save`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -167,6 +167,19 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
                     value={selectedNode.data.options?.join(', ')} 
                     onChange={(e) => updateNodeData({ options: e.target.value.split(',').map(o => o.trim()) })} 
                   />
+                </>
+              )}
+               {selectedNode.type === 'inputNode' && (
+                <>
+                  <label>Data Validation</label>
+                  <select 
+                    value={selectedNode.data.validationType} 
+                    onChange={(e) => updateNodeData({ validationType: e.target.value })}
+                  >
+                    <option value="text">Any Text</option>
+                    <option value="email">Email</option>
+                    <option value="number">Numbers/Phone</option>
+                  </select>
                 </>
               )}
               <button className="delete-btn" onClick={() => {

@@ -1,53 +1,105 @@
 import { useEffect, useState } from "react";
+import flowData from "../data/botFlow.json";
 import { useSocket } from "../context/SocketContext";
-import botFlow from "../data/botFlow.json";
 
-export const useChat = (user, agentId) => {
+export const useChat = () => {
   const socket = useSocket();
   const [chat, setChat] = useState([]);
-  
+  const [currentNodeId, setCurrentNodeId] = useState(null);
+  const [isSearchingAgent, setIsSearchingAgent] = useState(false);
+  const [connectedAgentId, setConnectedAgentId] = useState(null);
 
-  // 1️⃣ Show greeting message when chat starts
   useEffect(() => {
-    setChat([
-      {
-        sender: "Bot",
-        text: botFlow.greeting.message
+    const startNode = flowData.nodes.find((n) => n.type === "startNode");
+    if (startNode) {
+      setChat([{ sender: "Bot", text: startNode.data.label }]);
+      const firstEdge = flowData.edges.find((e) => e.source === startNode.id);
+      if (firstEdge) {
+        const nextNode = flowData.nodes.find((n) => n.id === firstEdge.target);
+        setTimeout(() => triggerBotNode(nextNode), 800);
       }
-    ]);
+    }
   }, []);
-
-
-
-  // 2️⃣ Socket listener for receiving agent messages
 
   useEffect(() => {
     if (!socket) return;
 
-    console.log("✅ useChat connected with socket:", socket.id);
+    socket.on("chat-accepted", ({ agentId }) => {
+      setIsSearchingAgent(false);
+      setConnectedAgentId(agentId);
+      setChat((prev) => [...prev, { sender: "Bot", text: "You are now connected to an agent." }]);
+    });
 
-    const handleReceive = ({ from, message }) => {
-      console.log("💬 Message received from:", from, message);
-      setChat((prev) => [...prev, { text: message, sender: "Agent" }]);
+    socket.on("no-agents", (message) => {
+      setIsSearchingAgent(false);
+      setChat((prev) => [...prev, { sender: "Bot", text: message }]);
+    });
+
+    socket.on("receive-message", ({ message, name }) => {
+      setChat((prev) => [...prev, { sender: name || "Agent", text: message }]);
+    });
+
+    return () => {
+      socket.off("chat-accepted");
+      socket.off("no-agents");
+      socket.off("receive-message");
     };
-
-    socket.on("receive-message", handleReceive);
-
-    return () => socket.off("receive-message", handleReceive);
   }, [socket]);
 
-
-
-  // 3️⃣ Send message from user to agent
-
-  const sendMessage = (message) => {
-    if (!socket || !message.trim()) return;
-
-    console.log("📤 Sending message to:", agentId, "msg:", message);
-    socket.emit("send-message", { to: agentId, message });
-
-    setChat((prev) => [...prev, { text: message, sender: "You" }]);
+  const triggerBotNode = (node) => {
+    if (!node) return;
+    setCurrentNodeId(node.id);
+    setChat((prev) => [
+      ...prev,
+      {
+        sender: "Bot",
+        text: node.data.question || node.data.label,
+        type: node.type,
+        options: node.type === "optionNode" ? node.data.options : [],
+      },
+    ]);
   };
 
-  return { chat, sendMessage };
+  // UPDATED: Added userName parameter
+  const sendMessage = (text, isOption = false, optionIndex = null, userName = "Guest") => {
+    setChat((prev) => [...prev, { sender: "You", text }]);
+
+    if (connectedAgentId) {
+      socket.emit("send-message", { to: connectedAgentId, message: text });
+      return;
+    }
+
+    if (isOption && optionIndex === 3) {
+      setIsSearchingAgent(true);
+      setChat((prev) => [...prev, { sender: "Bot", text: "Checking agent availability..." }]);
+
+      // UPDATED: Emit the actual userName to the server
+      socket.emit("customer-request", { name: userName });
+      return;
+    }
+
+    const currentNode = flowData.nodes.find((n) => n.id === currentNodeId);
+    if (!currentNode) return;
+
+    let nextEdge;
+    if (isOption && optionIndex !== null) {
+      nextEdge = flowData.edges.find(
+        (e) => e.source === currentNodeId && e.sourceHandle === `opt-${optionIndex}`
+      );
+    } else {
+      nextEdge = flowData.edges.find((e) => e.source === currentNodeId);
+    }
+
+    if (nextEdge) {
+      const nextNode = flowData.nodes.find((n) => n.id === nextEdge.target);
+      setTimeout(() => triggerBotNode(nextNode), 600);
+    }
+  };
+
+  return {
+    chat,
+    sendMessage,
+    isSearchingAgent,
+    currentNode: flowData.nodes.find(n => n.id === currentNodeId)
+  };
 };

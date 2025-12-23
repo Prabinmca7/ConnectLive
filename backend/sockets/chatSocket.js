@@ -1,21 +1,20 @@
-let agents = [];
-let waitingCustomers = [];
+let agents = []; // Holds { socketId, username, available }
+let activeChats = []; // Holds { customerId, agentId }
 
 export const initChatSocket = (io) => {
   io.on("connection", (socket) => {
-    console.log(`User connected: ${socket.id}`);
+    console.log(`Connection established: ${socket.id}`);
 
-    // ⭐ Store customer name when connected
-    socket.customerName = ""; 
-
-    // 🧪 Test emit
-    setTimeout(() => {
-      console.log("🧪 Sending test message from server...");
-      io.emit("receive-message", { from: "server", name: "Server", message: "Server test message" }); // ⭐ UPDATED
-    }, 5000);
-
+    // --- AGENT REGISTRATION ---
     socket.on("agent-online", (agent) => {
-      agents.push({ socketId: socket.id, ...agent, available: true });
+      // Clean up any old sessions for this agent
+      agents = agents.filter(a => a.socketId !== socket.id);
+      agents.push({
+        socketId: socket.id,
+        username: agent.name,
+        available: true
+      });
+      console.log(`Agent ${agent.name} is ready.`);
       io.emit("agent-list", agents);
     });
 
@@ -24,79 +23,67 @@ export const initChatSocket = (io) => {
       io.emit("agent-list", agents);
     });
 
+    // --- CUSTOMER REQUEST HANDLER ---
     socket.on("customer-request", (customerData) => {
-      const availableAgent = agents.find((a) => a.available);
+      // 1. Check for available agent
+      const availableAgent = agents.find((a) => a.available === true);
+
       if (!availableAgent) {
-        socket.emit("no-agents", "No agents are available now.");
+        // No agents online or all are busy
+        socket.emit("no-agents", "No agents are available right now. Please try later.");
         return;
       }
 
-      // ⭐ Save customer name for later messages
-      socket.customerName = customerData.name; // ⭐ UPDATED
-
-      const customer = {
-        socketId: socket.id,
-        ...customerData,
-      };
-
+      // 2. Mark agent as busy immediately to prevent race conditions
       availableAgent.available = false;
-      waitingCustomers.push({ customerId: socket.id, agentId: availableAgent.socketId });
+      io.emit("agent-list", agents);
 
-      io.to(availableAgent.socketId).emit("chat-request", { customer });
-    });
-
-    socket.on("accept-chat", ({ customerId }) => {
-      console.log("Agent accepted chat with:", customerId);
-      io.to(customerId).emit("chat-accepted", { agentId: socket.id });
-    });
-
-    socket.on("send-message", ({ to, message }) => {
-      console.log("📤 Message relay triggered");
-      console.log("   From:", socket.id);
-      console.log("   To:", to);
-      console.log("   Message:", message);
-
-      // ⭐ Include customer name when sending to agent
-      io.to(to).emit("receive-message", { 
-        from: socket.id, 
-        name: socket.customerName, // ⭐ UPDATED
-        message 
+      // 3. Notify the agent that a customer wants to chat
+      io.to(availableAgent.socketId).emit("chat-request", {
+        customer: { socketId: socket.id, name: customerData.name }
       });
     });
 
+    socket.on("accept-chat", ({ customerId }) => {
+      activeChats.push({ customerId, agentId: socket.id });
+      // Notify customer connection is successful
+      io.to(customerId).emit("chat-accepted", { agentId: socket.id });
+    });
+
+    // --- MESSAGE RELAY ---
+    socket.on("send-message", ({ to, message }) => {
+      // Find sender name (either agent username or "Guest")
+      const agent = agents.find(a => a.socketId === socket.id);
+      const senderName = agent ? agent.username : "Customer";
+
+      io.to(to).emit("receive-message", {
+        from: socket.id,
+        name: senderName,
+        message
+      });
+    });
+
+    // --- DISCONNECT ---
     socket.on("disconnect", () => {
+      // If an agent leaves
       agents = agents.filter((a) => a.socketId !== socket.id);
-      waitingCustomers = waitingCustomers.filter((c) => c.customerId !== socket.id);
+
+      // If a customer leaves, free up their agent
+      const session = activeChats.find(c => c.customerId === socket.id);
+      if (session) {
+        const linkedAgent = agents.find(a => a.socketId === session.agentId);
+        if (linkedAgent) {
+          linkedAgent.available = true; // Make agent available again
+          io.to(linkedAgent.socketId).emit("receive-message", {
+            from: "System",
+            message: "Customer has disconnected."
+          });
+        }
+        activeChats = activeChats.filter(c => c.customerId !== socket.id);
+      }
 
       io.emit("agent-list", agents);
-      console.log(`User disconnected: ${socket.id}`);
+      console.log(`Disconnected: ${socket.id}`);
     });
-
-
-    // 🧠 WebRTC signaling events
-    socket.on("audio-offer", ({ to, offer }) => {
-      console.log("🎧 Forwarding audio offer to:", to);
-      io.to(to).emit("audio-offer", { from: socket.id, offer });
-    });
-
-    socket.on("audio-answer", ({ to, answer }) => {
-      console.log("📞 Forwarding audio answer to:", to);
-      io.to(to).emit("audio-answer", { from: socket.id, answer });
-    });
-
-    socket.on("ice-candidate", ({ to, candidate }) => {
-      io.to(to).emit("ice-candidate", { from: socket.id, candidate });
-    });
-
-    socket.on("call-rejected", ({ to }) => {
-      console.log(`🚫 Call rejected by agent ${socket.id}, notifying ${to}`);
-      io.to(to).emit("call-rejected", { from: socket.id });
-    });
-
-    socket.on("call-ended", ({ to }) => {
-      console.log(`🚫 Call Ended by agent ${socket.id}, notifying ${to}`);
-      io.to(to).emit("call-ended", { from: socket.id });
-    });
-
   });
 };

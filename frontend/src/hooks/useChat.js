@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import flowData from "../data/botFlow.json";
 import { useSocket } from "../context/SocketContext";
 
@@ -8,6 +8,8 @@ export const useChat = () => {
   const [currentNodeId, setCurrentNodeId] = useState(null);
   const [isSearchingAgent, setIsSearchingAgent] = useState(false);
   const [connectedAgentId, setConnectedAgentId] = useState(null);
+  const visitedNodesRef = useRef(new Set());
+  const [waitingForContinue, setWaitingForContinue] = useState(false);
 
   useEffect(() => {
     const startNode = flowData.nodes.find((n) => n.type === "startNode");
@@ -48,16 +50,36 @@ export const useChat = () => {
 
   const triggerBotNode = (node) => {
     if (!node) return;
+    if (visitedNodesRef.current.has(node.id)) return;
+
+    visitedNodesRef.current.add(node.id);
     setCurrentNodeId(node.id);
+
     setChat((prev) => [
       ...prev,
       {
         sender: "Bot",
         text: node.data.question || node.data.label,
         type: node.type,
-        options: node.type === "optionNode" ? node.data.options : [],
       },
     ]);
+
+    // ⛔ STOP here if messageNode → wait for Continue
+    if (node.type === "messageNode") {
+      setWaitingForContinue(true);
+    }
+  };
+
+  const handleContinue = () => {
+    const currentNode = flowData.nodes.find(n => n.id === currentNodeId);
+    if (!currentNode) return;
+
+    const nextEdge = flowData.edges.find(e => e.source === currentNodeId);
+    if (!nextEdge) return;
+
+    const nextNode = flowData.nodes.find(n => n.id === nextEdge.target);
+    setWaitingForContinue(false);
+    triggerBotNode(nextNode);
   };
 
   // UPDATED: Added userName parameter
@@ -65,7 +87,7 @@ export const useChat = () => {
     setChat((prev) => [...prev, { sender: "You", text }]);
 
     if (connectedAgentId) {
-      socket.emit("send-message", { to: connectedAgentId, message: text });
+      socket.emit("send-message", { to: connectedAgentId, message: text, name: userName });
       return;
     }
 
@@ -100,6 +122,8 @@ export const useChat = () => {
     chat,
     sendMessage,
     isSearchingAgent,
-    currentNode: flowData.nodes.find(n => n.id === currentNodeId)
+    currentNode: flowData.nodes.find(n => n.id === currentNodeId),
+    waitingForContinue,
+    handleContinue,
   };
 };

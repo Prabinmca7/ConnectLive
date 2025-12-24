@@ -10,6 +10,8 @@ const ChatBox = ({ chat }) => {
           <strong>{msg.sender}:</strong> {msg.text}
         </div>
       ))}
+
+      
     </div>
   );
 };

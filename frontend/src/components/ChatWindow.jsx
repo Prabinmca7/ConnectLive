@@ -5,10 +5,10 @@ import ChatInput from "./ChatInput";
 import { useChat } from "../hooks/useChat";
 
 const ChatWindow = ({ user }) => {
-  const { chat, sendMessage, currentNode } = useChat();
+  const { chat, sendMessage, currentNode, waitingForContinue, handleContinue } = useChat();
 
   const handleOptionClick = (label, index) => {
-    sendMessage(label, true, index);
+    sendMessage(label, true, index, user?.name);
   };
 
   return (
@@ -17,6 +17,14 @@ const ChatWindow = ({ user }) => {
 
       <div className="chat-body-wrapper">
         <ChatBox chat={chat} />
+
+        {waitingForContinue && (
+          <div className="continue-container">
+            <button className="continue-btn" onClick={handleContinue}>
+              Continue
+            </button>
+          </div>
+        )}
 
         {/* Render buttons if the bot is waiting at an optionNode */}
         {currentNode?.type === "optionNode" && (
@@ -32,11 +40,13 @@ const ChatWindow = ({ user }) => {
             ))}
           </div>
         )}
+
+
       </div>
 
       {/* Show input only if bot is waiting for an InputNode */}
       <ChatInput
-        onSend={(text) => sendMessage(text)}
+        onSend={(text) => sendMessage(text, false, null, user?.name)}
         disabled={currentNode?.type === "optionNode"}
       />
     </div>

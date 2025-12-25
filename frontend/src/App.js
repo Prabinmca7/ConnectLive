@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "./App.css";
 import LaunchScreen from "./components/LaunchScreen";
 import ChatWindow from "./components/ChatWindow";
+import ChatWidgetView from "./components/ChatWidgetView";
 import { SocketProvider } from "./context/SocketContext";
 
 function App() {
@@ -15,11 +16,12 @@ function App() {
 
   return (
     <SocketProvider>
-      {!user ? (
+      {/* {!user ? (
         <LaunchScreen onChatStart={handleChatStart} />
       ) : (
         <ChatWindow user={user} agentId={agentId}/>
-      )}
+      )} */}
+<ChatWidgetView/>
     </SocketProvider>
   );
 }

@@ -17,43 +17,53 @@ const nodeTypes = CustomNodes;
 let id = 0;
 const getId = () => `node_${Date.now()}_${id++}`;
 
-const ChatBotBuilder = () => {
+const ChatBotBuilder = ({ user }) => { // <--- Added user prop
   const reactFlowWrapper = useRef(null);
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const [selectedNode, setSelectedNode] = useState(null);
+  const [currentFlowId, setCurrentFlowId] = useState(null); // <--- Added dynamic ID state
 
   const onNodesChange = useCallback((chs) => setNodes((nds) => applyNodeChanges(chs, nds)), []);
   const onEdgesChange = useCallback((chs) => setEdges((eds) => applyEdgeChanges(chs, eds)), []);
   const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), []);
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+  
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
-  // --- LOAD FLOW ---
+  // --- DYNAMIC LOAD FLOW BY COMPANY ---
   useEffect(() => {
     const loadFlow = async () => {
-      const flowId = "694919325b172d8248c9b654"; // Replace with dynamic ID later
+      if (!user?.companyId) return; // Wait until user is available
+
       try {
-        const response = await fetch(`${API_BASE_URL}/api/flows/${flowId}`);
+        // Fetch the flow associated with this specific company
+        const response = await fetch(`${API_BASE_URL}/api/flows/company/${user.companyId}`);
         if (response.ok) {
           const data = await response.json();
-          setNodes(data.nodes || []);
-          setEdges(data.edges || []);
+          if (data) {
+            setCurrentFlowId(data._id); // Store the actual DB ID
+            setNodes(data.nodes || []);
+            setEdges(data.edges || []);
+          }
         }
       } catch (err) {
         console.error("Load Error:", err);
       }
     };
     loadFlow();
-  }, []);
+  }, [user, API_BASE_URL]);
 
-  // --- SAVE FLOW ---
+  // --- DYNAMIC SAVE FLOW ---
   const onSave = useCallback(async () => {
-    if (reactFlowInstance) {
+    if (reactFlowInstance && user?.companyId) {
       const flow = reactFlowInstance.toObject();
       const payload = {
-        id: "694919325b172d8248c9b654",
+        id: currentFlowId, // Sends null if new, or the DB ID if updating
+        companyId: user.companyId, // <--- Link flow to company
+        name: `${user.companyName || 'Company'} Default Flow`,
+        createdBy: user.username,
         nodes: flow.nodes,
         edges: flow.edges,
         viewport: flow.viewport
@@ -65,12 +75,21 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
-        if (response.ok) alert('Flow saved to FineChat database!');
+        
+        const result = await response.json();
+        if (response.ok) {
+          setCurrentFlowId(result._id); // Update local ID so subsequent saves are "updates"
+          alert('Flow saved to FineChat database!');
+        }
       } catch (err) {
         alert('Save Failed!');
       }
+    } else {
+        alert("Cannot save flow without company context.");
     }
-  }, [reactFlowInstance]);
+  }, [reactFlowInstance, user, currentFlowId, API_BASE_URL]);
+
+  // ... rest of your existing drag/drop and update logic (onDragStart, onDrop, updateNodeData) ...
 
   const onDragStart = (event, nodeType) => {
     event.dataTransfer.setData('application/reactflow', nodeType);
@@ -111,8 +130,8 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
     <div className="builder-view">
       <div className="view-header">
         <div>
-          {/* <h1 className="view-title">ChatBot Builder</h1> */}
-          <p className="view-subtitle">Design your automated conversation flow</p>
+          <h1 className="view-title">Flow Builder</h1>
+          <p className="view-subtitle">Design your automated conversation flow for {user?.companyName || 'your company'}</p>
         </div>
         <div className="nav-actions">
           <button className="save-btn" onClick={onSave}>Save Changes</button>

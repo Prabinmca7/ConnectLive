@@ -2,16 +2,57 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+
+// Import Routes
 const flowRoutes = require('./routes/flowRoutes');
+const companyRoutes = require('./routes/companyRoutes'); // New
+const agentRoutes = require('./routes/agentRoutes');   // New
+const authRoutes = require('./routes/authRoutes');     // New
 
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: '*' }));
 app.use(express.json());
 
 // Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/flows', flowRoutes);
+app.use('/api/companies', companyRoutes);
+app.use('/api/agents', agentRoutes);
+
+// Global Stats Route (for Dashboard)
+app.get('/api/stats/super', async (req, res) => {
+    try {
+        const Company = require('./models/Company');
+        const Agent = require('./models/Agent');
+        const companyCount = await Company.countDocuments();
+        const agentCount = await Agent.countDocuments();
+        res.json({ companyCount, agentCount });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/stats/company/:id', async (req, res) => {
+    try {
+        const Company = require('./models/Company');
+        const Agent = require('./models/Agent');
+        const Flow = require('./models/Flow');
+        
+        const company = await Company.findById(req.params.id);
+        const currentAgents = await Agent.countDocuments({ companyId: req.params.id });
+        const flowCount = await Flow.countDocuments({ companyId: req.params.id });
+        
+        res.json({
+            currentAgents,
+            allowedAgents: company.allowedAgents,
+            flowCount
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
 // Database Connection
 mongoose.connect(process.env.MONGO_URI)

@@ -3,15 +3,17 @@ import { Outlet, useNavigate, NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
+  Building2, // Icon for Company Profile
   Workflow,
   History,
   Settings,
   LogOut,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ShieldCheck
 } from 'lucide-react';
 
-const Layout = ({ onLogout }) => {
+const Layout = ({ onLogout, user }) => {
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -34,11 +36,30 @@ const Layout = ({ onLogout }) => {
           </button>
         </div>
 
+        {/* User Info Badge */}
+        {!isCollapsed && (
+          <div className="user-info-badge" style={{ padding: '0 20px 20px', fontSize: '12px' }}>
+             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6366f1' }}>
+                <ShieldCheck size={14} />
+                <span style={{ fontWeight: 'bold', textTransform: 'uppercase' }}>{user?.role}</span>
+             </div>
+             <div style={{ color: '#9ca3af', marginTop: '4px' }}>{user?.username}</div>
+          </div>
+        )}
+
         <nav className="nav-menu">
           <NavLink to="/" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
             <LayoutDashboard size={20} />
             {!isCollapsed && <span>Dashboard</span>}
           </NavLink>
+
+          {/* NEW: Company Profile Link - Visible ONLY to Super Admin */}
+          {user?.role === 'super-admin' && (
+            <NavLink to="/companies" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
+              <Building2 size={20} />
+              {!isCollapsed && <span>Company Profiles</span>}
+            </NavLink>
+          )}
 
           <NavLink to="/agents" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
             <Users size={20} />

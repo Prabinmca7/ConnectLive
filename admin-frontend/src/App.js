@@ -1,33 +1,59 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
-import Agents from './components/Agents';
+import Agents from './components/Agents'; // Use this for Agent Management
 import ChatBotBuilder from './components/ChatBotBuilder';
 import ChatHistory from './components/ChatHistory';
+import CompanyProfile from './components/CompanyProfile'; 
+import Settings from './components/Settings'; 
 import './App.css';
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // Initialize from localStorage so refresh doesn't log you out
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem('app_user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+
+  const handleLogin = (userData) => {
+    localStorage.setItem('app_user', JSON.stringify(userData));
+    setUser(userData);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('app_user');
+    setUser(null);
+  };
 
   return (
     <Router>
       <Routes>
         {/* Login Page */}
         <Route path="/login" element={
-          !isAuthenticated ? <Login onLogin={() => setIsAuthenticated(true)} /> : <Navigate to="/" />
+          !user ? <Login onLogin={handleLogin} /> : <Navigate to="/" />
         } />
 
         {/* Protected Dashboard Layout */}
         <Route path="/" element={
-          isAuthenticated ? <Layout onLogout={() => setIsAuthenticated(false)} /> : <Navigate to="/login" />
+          user ? <Layout user={user} onLogout={handleLogout} /> : <Navigate to="/login" />
         }>
-          <Route index element={<Dashboard />} />
-          <Route path="agents" element={<Agents />} />
-          <Route path="builder" element={<ChatBotBuilder />} />
-          <Route path="history" element={<ChatHistory />} />
-          <Route path="settings" element={<div>Settings Coming Soon</div>} />
+          {/* Default Dashboard */}
+          <Route index element={<Dashboard user={user} />} />
+          
+          {/* Company Profile - ONLY for Super Admin */}
+          {user?.role === 'super-admin' && (
+            <Route path="companies" element={<CompanyProfile />} />
+          )}
+
+          {/* Agents Management - For Super Admin and Company Admin */}
+          <Route path="agents" element={<Agents user={user} />} />
+          
+          {/* Existing Routes */}
+          <Route path="builder" element={<ChatBotBuilder user={user} />} />
+          <Route path="history" element={<ChatHistory user={user} />} />
+          <Route path="settings" element={<Settings user={user} />} />
         </Route>
       </Routes>
     </Router>

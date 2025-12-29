@@ -25,44 +25,13 @@ const LaunchScreen = ({ onChatStart }) => {
       return;
     }
 
-    if (!socket) {
-      alert("Socket not connected");
-      return;
-    }
+    // Immediately start chat, skip agent check
+    onChatStart(formData, null);
 
-    // Send request to backend
-    setStatus("Checking for available agents...");
-    setIsWaiting(true);
-    socket.emit("customer-request", formData);
+
+
   };
 
-  // Attach listeners once when socket connects
-
-  useEffect(() => {
-    if (!socket) return;
-
-    const handleNoAgents = (msg) => {
-      setStatus(msg);
-      setIsWaiting(false);
-    };
-
-    const handleChatAccepted = ({ agentId }) => {
-      console.log("Chat accepted by agent:", agentId);
-      setStatus(""); // ✅ clear message
-      setIsWaiting(false);
-      onChatStart(formData, agentId); // ✅ move to chat window
-    };
-
-    socket.on("no-agents", handleNoAgents);
-    socket.on("chat-accepted", handleChatAccepted);
-
-    return () => {
-      socket.off("no-agents", handleNoAgents);
-      socket.off("chat-accepted", handleChatAccepted);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [socket]); 
-  // ✅ do NOT include formData or onChatStart in dependencies
 
   return (
     <div className="launch-screen">
@@ -98,20 +67,12 @@ const LaunchScreen = ({ onChatStart }) => {
             value={formData.subject}
             onChange={handleChange}
           />
-          <button type="submit" disabled={isWaiting}>
-            {isWaiting ? "Waiting..." : "Start Chat"}
-          </button>
+
+
+          <button type="submit">Start Chat</button>
         </form>
 
-        {status && (
-          <p
-            className={`status ${
-              status.includes("No agents") ? "error" : "info"
-            }`}
-          >
-            {status}
-          </p>
-        )}
+
       </div>
     </div>
   );

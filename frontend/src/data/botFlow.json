@@ -1,94 +1,408 @@
 {
-    "botId": "support_bot_v1",
-    "language": "en",
-    "greeting": {
-        "message": "Hello 👋 Welcome to our support chat! How can I help you today?"
-    },
-    "steps": [
+    "_id": "694919325b172d8248c9b654",
+    "__v": 0,
+    "edges": [
         {
-            "id": "start",
-            "type": "options",
-            "message": "Please choose one of the following options:",
-            "options": [
-                {
-                    "label": "Product Information",
-                    "nextStep": "product_info"
-                },
-                {
-                    "label": "Pricing & Plans",
-                    "nextStep": "pricing"
-                },
-                {
-                    "label": "Technical Support",
-                    "nextStep": "tech_support"
-                },
-                {
-                    "label": "Connect with Agent",
-                    "action": "connect_agent"
-                }
-            ]
+            "source": "node_1",
+            "sourceHandle": "opt-0",
+            "target": "node_3",
+            "targetHandle": null,
+            "id": "reactflow__edge-node_1opt-0-node_3"
         },
         {
-            "id": "product_info",
-            "type": "message",
-            "message": "Our product helps you manage tasks, chats, and automation efficiently.",
-            "nextStep": "start"
+            "source": "node_3",
+            "sourceHandle": null,
+            "target": "node_4",
+            "targetHandle": null,
+            "id": "reactflow__edge-node_3-node_4"
         },
         {
-            "id": "pricing",
-            "type": "message",
-            "message": "We offer Free, Pro, and Enterprise plans. Would you like to talk to an agent?",
-            "options": [
-                {
-                    "label": "Yes, connect me",
-                    "action": "connect_agent"
-                },
-                {
-                    "label": "Go back",
-                    "nextStep": "start"
-                }
-            ]
+            "source": "node_4",
+            "sourceHandle": null,
+            "target": "node_5",
+            "targetHandle": null,
+            "id": "reactflow__edge-node_4-node_5"
         },
         {
-            "id": "tech_support",
-            "type": "options",
-            "message": "What issue are you facing?",
-            "options": [
-                {
-                    "label": "Login issue",
-                    "nextStep": "login_issue"
-                },
-                {
-                    "label": "Performance issue",
-                    "nextStep": "performance_issue"
-                },
-                {
-                    "label": "Other issue",
-                    "action": "connect_agent"
-                }
-            ]
+            "source": "node_5",
+            "sourceHandle": null,
+            "target": "node_6",
+            "targetHandle": null,
+            "id": "reactflow__edge-node_5-node_6"
         },
         {
-            "id": "login_issue",
-            "type": "message",
-            "message": "Please try resetting your password. If the issue continues, connect with an agent.",
-            "options": [
-                {
-                    "label": "Connect with Agent",
-                    "action": "connect_agent"
-                },
-                {
-                    "label": "Go back",
-                    "nextStep": "tech_support"
-                }
-            ]
+            "source": "node_1",
+            "sourceHandle": "opt-1",
+            "target": "node_7",
+            "targetHandle": null,
+            "id": "reactflow__edge-node_1opt-1-node_7"
+        },
+        {
+            "source": "node_7",
+            "sourceHandle": null,
+            "target": "node_6",
+            "targetHandle": null,
+            "id": "reactflow__edge-node_7-node_6"
+        },
+        {
+            "source": "node_1",
+            "sourceHandle": "opt-2",
+            "target": "node_8",
+            "targetHandle": null,
+            "id": "reactflow__edge-node_1opt-2-node_8"
+        },
+        {
+            "source": "node_1",
+            "sourceHandle": "opt-3",
+            "target": "node_9",
+            "targetHandle": null,
+            "id": "reactflow__edge-node_1opt-3-node_9"
+        },
+        {
+            "source": "node_0",
+            "sourceHandle": null,
+            "target": "node_1",
+            "targetHandle": null,
+            "id": "reactflow__edge-node_0-node_1"
+        },
+        {
+            "source": "node_8",
+            "sourceHandle": null,
+            "target": "node_1766470898074_0",
+            "targetHandle": null,
+            "id": "reactflow__edge-node_8-node_1766470898074_0"
+        },
+        {
+            "source": "node_1766470898074_0",
+            "sourceHandle": null,
+            "target": "node_1766470912737_1",
+            "targetHandle": null,
+            "id": "reactflow__edge-node_1766470898074_0-node_1766470912737_1"
+        },
+        {
+            "source": "node_1766470912737_1",
+            "sourceHandle": null,
+            "target": "node_1766470923705_2",
+            "targetHandle": null,
+            "id": "reactflow__edge-node_1766470912737_1-node_1766470923705_2"
+        },
+        {
+            "source": "node_1766470923705_2",
+            "sourceHandle": null,
+            "target": "node_6",
+            "targetHandle": null,
+            "id": "reactflow__edge-node_1766470923705_2-node_6"
         }
     ],
-    "actions": {
-        "connect_agent": {
-            "type": "handoff",
-            "message": "Connecting you to a live agent. Please wait…",
-            "queue": "support"
+    "lastSaved": "2025-12-23T06:26:16.667Z",
+    "name": "Untitled Flow",
+    "nodes": [
+        {
+            "id": "node_0",
+            "type": "startNode",
+            "position": {
+                "x": 84.07334097167484,
+                "y": -162.487976467314
+            },
+            "data": {
+                "label": "Welcome to our bot!",
+                "question": "New Question?",
+                "options": [
+                    "Yes",
+                    "No"
+                ],
+                "validationType": "text"
+            },
+            "width": 206,
+            "height": 61,
+            "selected": false,
+            "positionAbsolute": {
+                "x": 84.07334097167484,
+                "y": -162.487976467314
+            },
+            "dragging": false
+        },
+        {
+            "id": "node_1",
+            "type": "optionNode",
+            "position": {
+                "x": 79.65477922224613,
+                "y": -57.46941624376433
+            },
+            "data": {
+                "label": "Hi i am bot, How i can help you?",
+                "question": "Hi i am bot, How i can help you?",
+                "options": [
+                    "Demo",
+                    "pricing",
+                    "service",
+                    "connectagent"
+                ],
+                "validationType": "text"
+            },
+            "width": 225,
+            "height": 200,
+            "selected": false,
+            "positionAbsolute": {
+                "x": 79.65477922224613,
+                "y": -57.46941624376433
+            },
+            "dragging": false
+        },
+        {
+            "id": "node_3",
+            "type": "inputNode",
+            "position": {
+                "x": 414.5708240373262,
+                "y": -89.22869635553917
+            },
+            "data": {
+                "label": "Enter your name?",
+                "question": "Enter your name?",
+                "options": [
+                    "Yes",
+                    "No"
+                ],
+                "validationType": "text"
+            },
+            "width": 206,
+            "height": 82,
+            "selected": false,
+            "positionAbsolute": {
+                "x": 414.5708240373262,
+                "y": -89.22869635553917
+            },
+            "dragging": false
+        },
+        {
+            "id": "node_4",
+            "type": "inputNode",
+            "position": {
+                "x": 413.12722039588175,
+                "y": 24.815991318561373
+            },
+            "data": {
+                "label": "Enter your Email",
+                "question": "Enter your Email",
+                "options": [
+                    "Yes",
+                    "No"
+                ],
+                "validationType": "email"
+            },
+            "width": 206,
+            "height": 82,
+            "selected": false,
+            "positionAbsolute": {
+                "x": 413.12722039588175,
+                "y": 24.815991318561373
+            },
+            "dragging": false
+        },
+        {
+            "id": "node_5",
+            "type": "inputNode",
+            "position": {
+                "x": 414.57082403732625,
+                "y": 133.08626442688464
+            },
+            "data": {
+                "label": "Enter Phone number",
+                "question": "Enter Phone number",
+                "options": [
+                    "Yes",
+                    "No"
+                ],
+                "validationType": "number"
+            },
+            "width": 206,
+            "height": 82,
+            "selected": false,
+            "positionAbsolute": {
+                "x": 414.57082403732625,
+                "y": 133.08626442688464
+            },
+            "dragging": false
+        },
+        {
+            "id": "node_6",
+            "type": "endNode",
+            "position": {
+                "x": 450.6609150734339,
+                "y": 430.46861456441263
+            },
+            "data": {
+                "label": "Thank you",
+                "question": "Thank you",
+                "options": [
+                    "Yes",
+                    "No"
+                ],
+                "validationType": "text"
+            },
+            "width": 146,
+            "height": 47,
+            "selected": false,
+            "positionAbsolute": {
+                "x": 450.6609150734339,
+                "y": 430.46861456441263
+            },
+            "dragging": false
+        },
+        {
+            "id": "node_7",
+            "type": "messageNode",
+            "position": {
+                "x": 644.1038030269716,
+                "y": -87.78509271409487
+            },
+            "data": {
+                "label": "Pricing $500 per month",
+                "question": "Pricing $500 per month",
+                "options": [
+                    "Yes",
+                    "No"
+                ],
+                "validationType": "text"
+            },
+            "width": 206,
+            "height": 66,
+            "selected": false,
+            "positionAbsolute": {
+                "x": 644.1038030269716,
+                "y": -87.78509271409487
+            },
+            "dragging": false
+        },
+        {
+            "id": "node_8",
+            "type": "messageNode",
+            "position": {
+                "x": 858.0458450669036,
+                "y": -89.22869635553917
+            },
+            "data": {
+                "label": "Create service request from here",
+                "question": "Create service request from here",
+                "options": [
+                    "Yes",
+                    "No"
+                ],
+                "validationType": "text"
+            },
+            "width": 206,
+            "height": 66,
+            "selected": false,
+            "positionAbsolute": {
+                "x": 858.0458450669036,
+                "y": -89.22869635553917
+            },
+            "dragging": false
+        },
+        {
+            "id": "node_9",
+            "type": "agentNode",
+            "position": {
+                "x": 121.72920799923907,
+                "y": 426.9623704204007
+            },
+            "data": {
+                "label": "New Message",
+                "question": "New Question?",
+                "options": [
+                    "Yes",
+                    "No"
+                ],
+                "validationType": "text"
+            },
+            "width": 206,
+            "height": 65,
+            "selected": false,
+            "positionAbsolute": {
+                "x": 121.72920799923907,
+                "y": 426.9623704204007
+            },
+            "dragging": false
+        },
+        {
+            "id": "node_1766470898074_0",
+            "type": "inputNode",
+            "position": {
+                "x": 860.6741635690178,
+                "y": 33.16243750281225
+            },
+            "data": {
+                "label": "Issue subject :",
+                "question": "Issue subject :",
+                "options": [
+                    "Yes",
+                    "No"
+                ],
+                "validationType": "text"
+            },
+            "width": 206,
+            "height": 82,
+            "selected": true,
+            "positionAbsolute": {
+                "x": 860.6741635690178,
+                "y": 33.16243750281225
+            },
+            "dragging": false
+        },
+        {
+            "id": "node_1766470912737_1",
+            "type": "inputNode",
+            "position": {
+                "x": 859.9559422413605,
+                "y": 141.35926969611555
+            },
+            "data": {
+                "label": "contact number",
+                "question": "contact number",
+                "options": [
+                    "Yes",
+                    "No"
+                ],
+                "validationType": "number"
+            },
+            "width": 206,
+            "height": 82,
+            "selected": false,
+            "positionAbsolute": {
+                "x": 859.9559422413605,
+                "y": 141.35926969611555
+            },
+            "dragging": false
+        },
+        {
+            "id": "node_1766470923705_2",
+            "type": "inputNode",
+            "position": {
+                "x": 861.8214048653832,
+                "y": 253.28702713746384
+            },
+            "data": {
+                "label": "issue Description",
+                "question": "issue Description",
+                "options": [
+                    "Yes",
+                    "No"
+                ],
+                "validationType": "text"
+            },
+            "width": 206,
+            "height": 82,
+            "selected": false,
+            "positionAbsolute": {
+                "x": 861.8214048653832,
+                "y": 253.28702713746384
+            },
+            "dragging": false
         }
+    ],
+    "viewport": {
+        "x": -30.154290920625954,
+        "y": 126.4229388202672,
+        "zoom": 0.5360600566972036
     }
 }

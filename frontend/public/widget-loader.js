@@ -1,7 +1,7 @@
 (function() {
     const scriptTag = document.currentScript;
     const apiKey = scriptTag.getAttribute('data-api-key');
-    const API_BASE_URL = "http://localhost:5000"; // Your Backend
+    const API_BASE_URL = "https://backend-3du0.onrender.com"; // Your Backend
   
     // 1. Validate API Key with your backend
     fetch(`${API_BASE_URL}/api/companies/verify-key?apiKey=${apiKey}`)
@@ -18,7 +18,7 @@
       function initChatWidget(key) {
         const iframe = document.createElement('iframe');
         iframe.id = 'finechat-iframe';
-        iframe.src = `http://localhost:3001/widget?apiKey=${key}`;
+        iframe.src = `https://finechat-imdq.onrender.com/widget?apiKey=${key}`;
         
         // Initial style (just big enough for the button)
         iframe.style.position = 'fixed';

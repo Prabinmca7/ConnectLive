@@ -1,7 +1,7 @@
 (function() {
     const scriptTag = document.currentScript;
     const apiKey = scriptTag.getAttribute('data-api-key');
-    const API_BASE_URL = "https://backend-3du0.onrender.com"; // Your Backend
+    const API_BASE_URL = "https://admin-backend-m6dq.onrender.com"; // Your Backend
   
     // 1. Validate API Key with your backend
     fetch(`${API_BASE_URL}/api/companies/verify-key?apiKey=${apiKey}`)

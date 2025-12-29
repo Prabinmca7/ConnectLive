@@ -43,6 +43,25 @@ const Sidebar = ({ setCurrentChat }) => {
     return () => socket.off("chat-request");
   }, [socket]);
 
+
+  // 🔚 Listen for chat end
+  useEffect(() => {
+    if (!socket) return;
+
+    const handler = ({ customerId }) => {
+      setChats(prev =>
+        prev.map(chat =>
+          chat.socketId === customerId
+            ? { ...chat, status: "ended" }
+            : chat
+        )
+      );
+    };
+
+    socket.on("chat-ended", handler);
+    return () => socket.off("chat-ended", handler);
+  }, [socket]);
+
   // ✅ Accept incoming chat request
   const acceptChat = async (customer) => {
     if (!socket || !customer) return;
@@ -64,15 +83,15 @@ const Sidebar = ({ setCurrentChat }) => {
     };
 
     // Optional: save to DB (you can keep it later)
-    try {
-      await fetch("https://backend-3du0.onrender.com/api/chats", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newChat),
-      });
-    } catch (err) {
-      console.warn("⚠️ Could not save chat to DB yet:", err.message);
-    }
+    // try {
+    //   await fetch("http://localhost:4000/api/chats", {
+    //     method: "POST",
+    //     headers: { "Content-Type": "application/json" },
+    //     body: JSON.stringify(newChat),
+    //   });
+    // } catch (err) {
+    //   console.warn("⚠️ Could not save chat to DB yet:", err.message);
+    // }
 
     // Update sidebar
     setChats((prev) => [newChat, ...prev]);

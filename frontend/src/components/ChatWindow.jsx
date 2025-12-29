@@ -3,12 +3,31 @@ import ChatHeader from "./ChatHeader";
 import ChatBox from "./ChatBox";
 import ChatInput from "./ChatInput";
 import { useChat } from "../hooks/useChat";
+import { useSocket } from "../context/SocketContext";
 
 const ChatWindow = ({ user }) => {
-  const { chat, sendMessage, currentNode, waitingForContinue, handleContinue } = useChat();
+  const socket = useSocket();
+
+  const {
+    chat,
+    sendMessage,
+    currentNode,
+    waitingForContinue,
+    handleContinue,
+    connectedAgentId
+  } = useChat();
 
   const handleOptionClick = (label, index) => {
     sendMessage(label, true, index, user?.name);
+  };
+
+  // ✅ END CHAT HANDLER
+  const handleEndChat = () => {
+    if (!socket) return;
+
+    if (window.confirm("Are you sure you want to end the chat?")) {
+      sendMessage("/end-chat");
+    }
   };
 
   return (
@@ -16,7 +35,12 @@ const ChatWindow = ({ user }) => {
       <ChatHeader currentChat={user} />
 
       <div className="chat-body-wrapper">
-        <ChatBox chat={chat} />
+        <ChatBox
+          chat={chat}
+          onOptionClick={handleOptionClick}
+          connectedAgentId={connectedAgentId}
+          onEndChat={handleEndChat}
+        />
 
         {waitingForContinue && (
           <div className="continue-container">
@@ -25,26 +49,8 @@ const ChatWindow = ({ user }) => {
             </button>
           </div>
         )}
-
-        {/* Render buttons if the bot is waiting at an optionNode */}
-        {currentNode?.type === "optionNode" && (
-          <div className="options-container">
-            {currentNode.data.options.map((opt, i) => (
-              <button
-                key={i}
-                className="bot-option-btn"
-                onClick={() => handleOptionClick(opt, i)}
-              >
-                {opt}
-              </button>
-            ))}
-          </div>
-        )}
-
-
       </div>
 
-      {/* Show input only if bot is waiting for an InputNode */}
       <ChatInput
         onSend={(text) => sendMessage(text, false, null, user?.name)}
         disabled={currentNode?.type === "optionNode"}

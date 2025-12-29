@@ -94,7 +94,8 @@
   transition: all 0.2s ease;
   text-align: left;
 
-  width: auto;          /* 👈 important */
+  width: auto;
+  /* 👈 important */
   max-width: 100%;
 }
 
@@ -169,5 +170,21 @@
   border: 2px solid #2563eb;
   color: #2563eb;
   font-weight: 600;
+  cursor: pointer;
+}
+
+
+.end-chat-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 6px;
+}
+
+.end-chat-btn {
+  background-color: #e53935;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
   cursor: pointer;
 }

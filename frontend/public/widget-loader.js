@@ -18,7 +18,7 @@
       function initChatWidget(key) {
         const iframe = document.createElement('iframe');
         iframe.id = 'finechat-iframe';
-        iframe.src = `https://finechat-imdq.onrender.com/widget?apiKey=${key}`;
+        iframe.src = `https://finechat-imdq.onrender.com?apiKey=${key}`;
         
         // Initial style (just big enough for the button)
         iframe.style.position = 'fixed';

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import flowData from "../data/botFlow.json";
 import { useSocket } from "../context/SocketContext";
 
@@ -7,18 +7,24 @@ export const useChat = () => {
 
   const [chat, setChat] = useState([]);
   const [currentNodeId, setCurrentNodeId] = useState(null);
-  const [isSearchingAgent, setIsSearchingAgent] = useState(false);
   const [connectedAgentId, setConnectedAgentId] = useState(null);
+  const [isSearchingAgent, setIsSearchingAgent] = useState(false);
   const [waitingForContinue, setWaitingForContinue] = useState(false);
+
+  const [chatId, setChatId] = useState(null); // 🔹 ADDED (for DB history)
 
   const visitedNodesRef = useRef(new Set());
 
   /* ================= START BOT FLOW ================= */
   const startBotFlow = () => {
     visitedNodesRef.current.clear();
+
     setChat([]);
     setCurrentNodeId(null);
+    setConnectedAgentId(null);
+    setIsSearchingAgent(false);
     setWaitingForContinue(false);
+    setChatId(null); // 🔹 ADDED (reset on new chat)
 
     const startNode = flowData.nodes.find(n => n.type === "startNode");
     if (!startNode) return;
@@ -26,10 +32,10 @@ export const useChat = () => {
     setChat([{ sender: "Bot", text: startNode.data.label }]);
 
     const firstEdge = flowData.edges.find(e => e.source === startNode.id);
-    if (firstEdge) {
-      const nextNode = flowData.nodes.find(n => n.id === firstEdge.target);
-      setTimeout(() => triggerBotNode(nextNode), 800);
-    }
+    if (!firstEdge) return;
+
+    const nextNode = flowData.nodes.find(n => n.id === firstEdge.target);
+    setTimeout(() => triggerBotNode(nextNode), 700);
   };
 
   useEffect(() => {
@@ -40,9 +46,10 @@ export const useChat = () => {
   useEffect(() => {
     if (!socket) return;
 
-    socket.on("chat-accepted", ({ agentId }) => {
-      setIsSearchingAgent(false);
+    socket.on("chat-accepted", ({ agentId, chatId }) => {
       setConnectedAgentId(agentId);
+      setChatId(chatId); // 🔹 ADDED (store chatId from backend)
+      setIsSearchingAgent(false);
 
       setChat(prev => [
         ...prev,
@@ -50,9 +57,17 @@ export const useChat = () => {
       ]);
     });
 
-    socket.on("no-agents", (message) => {
+    socket.on("chat-created", ({ chatId }) => {
+      setChatId(chatId);
+    });
+
+    socket.on("no-agents", message => {
       setIsSearchingAgent(false);
-      setChat(prev => [...prev, { sender: "Bot", text: message }]);
+
+      setChat(prev => [
+        ...prev,
+        { sender: "Bot", text: message || "No agents available." }
+      ]);
     });
 
     socket.on("receive-message", ({ message, name }) => {
@@ -62,20 +77,13 @@ export const useChat = () => {
       ]);
     });
 
-    // ✅ CHAT ENDED (RESET EVERYTHING)
     socket.on("chat-ended", ({ message }) => {
-      setConnectedAgentId(null);
-      setIsSearchingAgent(false);
-
       setChat(prev => [
         ...prev,
         { sender: "Bot", text: message || "Chat ended." }
       ]);
 
-      // restart flow after short delay
-      setTimeout(() => {
-        startBotFlow();
-      }, 1500);
+      setTimeout(startBotFlow, 1500);
     });
 
     return () => {
@@ -86,8 +94,8 @@ export const useChat = () => {
     };
   }, [socket]);
 
-  /* ================= BOT NODE ================= */
-  const triggerBotNode = (node) => {
+  /* ================= BOT NODE HANDLER ================= */
+  const triggerBotNode = node => {
     if (!node) return;
     if (visitedNodesRef.current.has(node.id)) return;
 
@@ -110,16 +118,37 @@ export const useChat = () => {
   };
 
   const handleContinue = () => {
-    const currentNode = flowData.nodes.find(n => n.id === currentNodeId);
-    if (!currentNode) return;
+    const edge = flowData.edges.find(e => e.source === currentNodeId);
+    if (!edge) return;
 
-    const nextEdge = flowData.edges.find(e => e.source === currentNodeId);
-    if (!nextEdge) return;
-
-    const nextNode = flowData.nodes.find(n => n.id === nextEdge.target);
+    const nextNode = flowData.nodes.find(n => n.id === edge.target);
     setWaitingForContinue(false);
     triggerBotNode(nextNode);
   };
+
+  /* ================= ACTION HANDLER ================= */
+  const handleNodeAction = (node, userName) => {
+    switch (node.data?.action) {
+      case "CONNECT_AGENT":
+        setIsSearchingAgent(true);
+
+        setChat(prev => [
+          ...prev,
+          { sender: "Bot", text: node.data.question || "Connecting to agent..." }
+        ]);
+
+        socket.emit("customer-request", {
+          name: userName,
+          history: chat
+        });
+        return true;
+
+      default:
+        return false;
+    }
+  };
+
+
 
   /* ================= SEND MESSAGE ================= */
   const sendMessage = (
@@ -129,69 +158,60 @@ export const useChat = () => {
     userName = "Guest"
   ) => {
     setChat(prev => [
-      ...prev.map(msg => (msg.options ? { ...msg, options: null } : msg)),
+      ...prev.map(m => (m.options ? { ...m, options: null } : m)),
       { sender: "You", text }
     ]);
 
-    // ✅ END CHAT
+    // END CHAT
     if (text === "/end-chat" && connectedAgentId) {
-      socket.emit("end-chat");
+      socket.emit("end-chat", { chatId }); // 🔹 ADDED chatId
       return;
     }
 
-    // ✅ SEND TO AGENT
+    // SEND MESSAGE TO AGENT
     if (connectedAgentId) {
       socket.emit("send-message", {
-        to: connectedAgentId,
+        to: connectedAgentId,   // agent socketId
+        chatId,                 // chat session id
         message: text,
         name: userName
       });
       return;
     }
 
-    // ✅ REQUEST AGENT (OPTION INDEX 3)
-    if (isOption && optionIndex === 3) {
-      setIsSearchingAgent(true);
-      setChat(prev => [
-        ...prev,
-        { sender: "Bot", text: "Checking agent availability..." }
-      ]);
-
-      socket.emit("customer-request", {
-        name: userName,
-        history: chat
-      });
-      return;
-    }
-
-    // BOT FLOW CONTINUE
     const currentNode = flowData.nodes.find(n => n.id === currentNodeId);
     if (!currentNode) return;
 
-    let nextEdge;
+    let edge;
+
     if (isOption && optionIndex !== null) {
-      nextEdge = flowData.edges.find(
+      edge = flowData.edges.find(
         e =>
           e.source === currentNodeId &&
           e.sourceHandle === `opt-${optionIndex}`
       );
     } else {
-      nextEdge = flowData.edges.find(e => e.source === currentNodeId);
+      edge = flowData.edges.find(e => e.source === currentNodeId);
     }
 
-    if (nextEdge) {
-      const nextNode = flowData.nodes.find(n => n.id === nextEdge.target);
-      setTimeout(() => triggerBotNode(nextNode), 600);
-    }
+    if (!edge) return;
+
+    const nextNode = flowData.nodes.find(n => n.id === edge.target);
+    if (!nextNode) return;
+
+    const actionHandled = handleNodeAction(nextNode, userName);
+    if (actionHandled) return;
+
+    setTimeout(() => triggerBotNode(nextNode), 600);
   };
 
   return {
     chat,
     sendMessage,
     isSearchingAgent,
-    currentNode: flowData.nodes.find(n => n.id === currentNodeId),
     waitingForContinue,
     handleContinue,
-    connectedAgentId
+    connectedAgentId,
+    currentNode: flowData.nodes.find(n => n.id === currentNodeId)
   };
 };

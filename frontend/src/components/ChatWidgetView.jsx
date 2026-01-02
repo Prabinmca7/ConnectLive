@@ -1,24 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { MessageCircle, X, AlertTriangle } from 'lucide-react';
-import LaunchScreen from "./LaunchScreen";
 import ChatWindow from "./ChatWindow";
 import axios from 'axios';
 import './ChatWidget.css';
 
 const ChatWidgetView = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [user, setUser] = useState(null);
-  const [agentId, setAgentId] = useState(null);
-  
-  // NEW STATES FOR VERIFICATION
-  const [isValidKey, setIsValidKey] = useState(null); // null = loading, true = valid, false = invalid
+  const [user, setUser] = useState({ name: "Guest" }); // default guest user
+
+  const [isValidKey, setIsValidKey] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
 
   useEffect(() => {
     const verifyApiKey = async () => {
-      // Get API Key from URL query string (?apiKey=fc_...)
       const params = new URLSearchParams(window.location.search);
       const apiKey = params.get('apiKey');
 
@@ -30,11 +26,7 @@ const ChatWidgetView = () => {
 
       try {
         const response = await axios.get(`${API_BASE_URL}/api/companies/verify-key?apiKey=${apiKey}`);
-        if (response.data.valid) {
-          setIsValidKey(true);
-        } else {
-          setIsValidKey(false);
-        }
+        setIsValidKey(response.data.valid);
       } catch (err) {
         setIsValidKey(false);
       } finally {
@@ -51,15 +43,8 @@ const ChatWidgetView = () => {
     window.parent.postMessage(message, '*');
   }, [isOpen]);
 
-  const handleChatStart = (userData, agentSocketId) => {
-    setUser(userData);
-    setAgentId(agentSocketId);
-  };
-
-  // 1. If still checking the key, show nothing
   if (loading) return null;
 
-  // 2. If the key is INVALID, show an error message instead of the chat
   if (isValidKey === false) {
     return (
       <div className="finechat-invalid-key">
@@ -69,7 +54,6 @@ const ChatWidgetView = () => {
     );
   }
 
-  // 3. If VALID, show your normal UI
   return (
     <div className={`finechat-widget-wrapper ${isOpen ? 'is-open' : 'is-closed'}`}>
       {isOpen && (
@@ -83,18 +67,14 @@ const ChatWidgetView = () => {
               <X size={20} />
             </button>
           </div>
-          
+
           <div className="chat-body">
-            {!user ? (
-              <LaunchScreen onChatStart={handleChatStart} />
-            ) : (
-              <ChatWindow user={user} agentId={agentId}/>
-            )}
+            <ChatWindow user={user} /> {/* Open chat immediately */}
           </div>
         </div>
       )}
 
-      <button 
+      <button
         className={`chat-launcher-btn ${isOpen ? 'btn-active' : ''}`}
         onClick={() => setIsOpen(!isOpen)}
       >

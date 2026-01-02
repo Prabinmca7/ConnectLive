@@ -8,21 +8,11 @@ const Sidebar = ({ setCurrentChat }) => {
   const [chats, setChats] = useState([]);
   const [incomingRequest, setIncomingRequest] = useState(null);
 
-  // ✅ Fetch chats from backend (or mock for now)
+  // Fetch chats (mock or backend)
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        // Temporary mock data
-        const data = [
-          {
-            _id: "674c59",
-            name: "John Doe",
-            email: "john@example.com",
-            status: "ended",
-            messages: [],
-            socketId: "mock123", // 👈 important for sending messages
-          },
-        ];
+        const data = []; // fetch from backend if needed
         setChats(data);
       } catch (err) {
         console.error("Failed to fetch chats:", err);
@@ -31,29 +21,25 @@ const Sidebar = ({ setCurrentChat }) => {
     fetchChats();
   }, []);
 
-  // 🧠 Listen for new chat requests (from customers)
+  // Listen for new chat requests
   useEffect(() => {
     if (!socket) return;
 
     socket.on("chat-request", (data) => {
-      console.log("📩 New chat request from:", data.customer);
       setIncomingRequest(data.customer);
     });
 
     return () => socket.off("chat-request");
   }, [socket]);
 
-
-  // 🔚 Listen for chat end
+  // Listen for chat end
   useEffect(() => {
     if (!socket) return;
 
     const handler = ({ customerId }) => {
-      setChats(prev =>
-        prev.map(chat =>
-          chat.socketId === customerId
-            ? { ...chat, status: "ended" }
-            : chat
+      setChats((prev) =>
+        prev.map((chat) =>
+          chat.socketId === customerId ? { ...chat, status: "ended" } : chat
         )
       );
     };
@@ -62,49 +48,32 @@ const Sidebar = ({ setCurrentChat }) => {
     return () => socket.off("chat-ended", handler);
   }, [socket]);
 
-  // ✅ Accept incoming chat request
-  const acceptChat = async (customer) => {
+  // Accept incoming chat
+  const acceptChat = (customer) => {
     if (!socket || !customer) return;
 
-    console.log("✅ Accepting chat from:", customer.socketId);
+    // Send to backend
+    socket.emit("accept-chat", {
+      customerId: customer.socketId,
+      chatId: customer.chatId // 🔹 pass chatId
+    });
 
-    // Inform backend which customer was accepted
-    socket.emit("accept-chat", { customerId: customer.socketId });
-
-    // Create chat object that includes socketId (for messaging)
     const newChat = {
-      _id: customer.socketId, // Use socketId as temp unique key
+      _id: customer.socketId,
       name: customer.name,
       email: customer.email,
-      subject: customer.subject || "Support Request",
       status: "active",
-      socketId: customer.socketId, // 👈 needed for messaging
-      messages: [],
+      socketId: customer.socketId,
+      chatId: customer.chatId,
+      messages: []
     };
 
-    // Optional: save to DB (you can keep it later)
-    // try {
-    //   await fetch("http://localhost:4000/api/chats", {
-    //     method: "POST",
-    //     headers: { "Content-Type": "application/json" },
-    //     body: JSON.stringify(newChat),
-    //   });
-    // } catch (err) {
-    //   console.warn("⚠️ Could not save chat to DB yet:", err.message);
-    // }
-
-    // Update sidebar
     setChats((prev) => [newChat, ...prev]);
-
-    // 🧠 VERY IMPORTANT — pass socketId to ChatWindow
     setCurrentChat(newChat);
-
-    // Close popup
     setIncomingRequest(null);
   };
 
   const rejectChat = () => {
-    console.log("❌ Chat request rejected");
     setIncomingRequest(null);
   };
 
@@ -132,7 +101,6 @@ const Sidebar = ({ setCurrentChat }) => {
         ))
       )}
 
-      {/* 💬 New chat request popup */}
       <ChatRequestModal
         visible={!!incomingRequest}
         customer={incomingRequest}

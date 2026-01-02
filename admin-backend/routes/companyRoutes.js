@@ -41,6 +41,17 @@ router.put('/:id', auth(['super_admin']), async (req, res) => {
   try {
     const { companyName, username, password, allowedAgents } = req.body;
 
+    // ✅ Check username uniqueness (excluding current company)
+    if (username) {
+      const exists = await Company.findOne({
+        username,
+        _id: { $ne: req.params.id }
+      });
+      if (exists) {
+        return res.status(400).json({ message: 'Username already exists' });
+      }
+    }
+    
     const updateData = {
       companyName,
       username,

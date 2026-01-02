@@ -41,8 +41,8 @@ const ChatBotBuilder = ({ user }) => { // <--- Added user prop
       try {
         // Fetch the flow associated with this specific company
         const response = await api.get(`/api/flows/company/${user.companyId}`);
-        if (response.ok) {
-          const data = await response.json();
+        if (response.statusText == 'OK') {
+          const data = response.data;
           if (data) {
             setCurrentFlowId(data._id); // Store the actual DB ID
             setNodes(data.nodes || []);
@@ -71,14 +71,11 @@ const ChatBotBuilder = ({ user }) => { // <--- Added user prop
       };
 
       try {
-        const response = await api.get(`/api/flows/save`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
+        const response = await api.post('/api/flows/save', payload);
+        console.log('Flow saved:', response.data);
         
-        const result = await response.json();
-        if (response.ok) {
+        const result = await response.data;
+        if (response.statusText == 'OK') {
           setCurrentFlowId(result._id); // Update local ID so subsequent saves are "updates"
           alert('Flow saved to FineChat database!');
         }
@@ -147,6 +144,7 @@ const ChatBotBuilder = ({ user }) => { // <--- Added user prop
           <div className="dndnode" onDragStart={(e) => onDragStart(e, 'messageNode')} draggable>Message</div>
           <div className="dndnode" onDragStart={(e) => onDragStart(e, 'optionNode')} draggable>Options</div>
           <div className="dndnode" onDragStart={(e) => onDragStart(e, 'inputNode')} draggable>User Input</div>
+          <div className="dndnode calendar" onDragStart={(e) => onDragStart(e, 'appointmentNode')} draggable>Appointment</div>
           <div className="dndnode agent" onDragStart={(e) => onDragStart(e, 'agentNode')} draggable>Talk to Agent</div>
           <div className="dndnode end" onDragStart={(e) => onDragStart(e, 'endNode')} draggable>End Flow</div>
         </aside>
@@ -202,6 +200,68 @@ const ChatBotBuilder = ({ user }) => { // <--- Added user prop
                   </select>
                 </>
               )}
+              {selectedNode.type === 'appointmentNode' && (
+  <>
+    <label>Start Time</label>
+    <input
+      type="time"
+      value={selectedNode.data.appointment?.startTime || ''}
+      onChange={(e) =>
+        updateNodeData({
+          appointment: {
+            ...selectedNode.data.appointment,
+            startTime: e.target.value
+          }
+        })
+      }
+    />
+
+    <label>End Time</label>
+    <input
+      type="time"
+      value={selectedNode.data.appointment?.endTime || ''}
+      onChange={(e) =>
+        updateNodeData({
+          appointment: {
+            ...selectedNode.data.appointment,
+            endTime: e.target.value
+          }
+        })
+      }
+    />
+
+    <label>Slot Duration (minutes)</label>
+    <input
+      type="number"
+      value={selectedNode.data.appointment?.slotDuration || 30}
+      onChange={(e) =>
+        updateNodeData({
+          appointment: {
+            ...selectedNode.data.appointment,
+            slotDuration: Number(e.target.value)
+          }
+        })
+      }
+    />
+
+    <label>
+      <input
+        type="checkbox"
+        checked={!!selectedNode.data.appointment?.includeInReport}
+        onChange={(e) =>
+          updateNodeData({
+            appointment: {
+              ...selectedNode.data.appointment,
+              includeInReport: e.target.checked
+            }
+          })
+        }
+      />{' '}
+      Include in report
+    </label>
+  </>
+)}
+
               <button className="delete-btn" onClick={() => {
                 setNodes(nds => nds.filter(n => n.id !== selectedNode.id));
                 setSelectedNode(null);

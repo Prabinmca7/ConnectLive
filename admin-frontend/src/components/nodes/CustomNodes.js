@@ -90,6 +90,23 @@ export const EndNode = () => (
   </div>
 );
 
+
+export const AppointmentNode = ({ data }) => (
+  <div style={{ ...nodeStyle, borderTop: '4px solid #10b981' }}>
+    <Handle type="target" position={Position.Top} />
+    <strong>APPOINTMENT</strong>
+    <div style={{ fontSize: 11 }}>
+      {data.label || 'Book an appointment'}
+    </div>
+    <div style={{ fontSize: 10, color: '#64748b' }}>
+      {data.appointment?.slotDuration || 30} min slots
+    </div>
+    <Handle type="source" position={Position.Bottom} />
+  </div>
+);
+
+
+
 // Unified Export Object
 const CustomNodes = {
   startNode: StartNode,
@@ -97,7 +114,8 @@ const CustomNodes = {
   optionNode: OptionNode,
   inputNode: InputNode,
   agentNode: AgentNode,
-  endNode: EndNode
+  endNode: EndNode,
+  appointmentNode: AppointmentNode
 };
 
 export default CustomNodes;

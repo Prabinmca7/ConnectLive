@@ -10,6 +10,7 @@ import 'reactflow/dist/style.css';
 
 import CustomNodes from './nodes/CustomNodes'; 
 import ChatPreview from './ChatPreview'; 
+import api from '../utils/api';
 
 const nodeTypes = CustomNodes;
 
@@ -39,7 +40,7 @@ const ChatBotBuilder = ({ user }) => { // <--- Added user prop
 
       try {
         // Fetch the flow associated with this specific company
-        const response = await fetch(`${API_BASE_URL}/api/flows/company/${user.companyId}`);
+        const response = await api.get(`/api/flows/company/${user.companyId}`);
         if (response.ok) {
           const data = await response.json();
           if (data) {
@@ -70,7 +71,7 @@ const ChatBotBuilder = ({ user }) => { // <--- Added user prop
       };
 
       try {
-        const response = await fetch(`${API_BASE_URL}/api/flows/save`, {
+        const response = await api.get(`/api/flows/save`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),

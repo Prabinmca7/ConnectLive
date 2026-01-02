@@ -2,6 +2,9 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+ 
 
 // Import Routes
 const flowRoutes = require('./routes/flowRoutes');
@@ -15,11 +18,17 @@ const app = express();
 app.use(cors({ origin: '*' }));
 app.use(express.json());
 
+app.use(helmet());
+app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
+
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/flows', flowRoutes);
 app.use('/api/companies', companyRoutes);
 app.use('/api/agents', agentRoutes);
+
+
 
 // Global Stats Route (for Dashboard)
 app.get('/api/stats/super', async (req, res) => {

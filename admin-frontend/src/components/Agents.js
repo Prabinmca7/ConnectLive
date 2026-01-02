@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from 'axios';
+import api from '../utils/api';
 import './Agent.css';
 
 export default function Agents({ user }) {
@@ -20,10 +20,10 @@ export default function Agents({ user }) {
       setLoading(true);
       // If super-admin, fetch all. If company admin, fetch only theirs.
       const url = user.role === 'super-admin' 
-        ? `${API_BASE_URL}/api/agents/all` 
-        : `${API_BASE_URL}/api/agents/company/${user.companyId}`;
+        ? `/api/agents/all` 
+        : `/api/agents/company/${user.companyId}`;
       
-      const res = await axios.get(url);
+      const res = await api.get(url);
       setAgents(res.data);
     } catch (err) {
       console.error("Error fetching agents:", err);
@@ -48,7 +48,7 @@ export default function Agents({ user }) {
   const deleteAgent = async (id) => {
     if (window.confirm("Are you sure you want to delete this agent?")) {
       try {
-        await axios.delete(`${API_BASE_URL}/api/agents/${id}`);
+        await api.delete(`/api/agents/${id}`);
         setAgents(agents.filter((a) => a._id !== id));
       } catch (err) {
         alert("Delete failed");
@@ -75,11 +75,11 @@ export default function Agents({ user }) {
     try {
       if (editingAgent) {
         // Update
-        const res = await axios.put(`${API_BASE_URL}/api/agents/${editingAgent._id}`, agentData);
+        const res = await api.put(`/api/agents/${editingAgent._id}`, agentData);
         setAgents(agents.map((a) => (a._id === editingAgent._id ? res.data : a)));
       } else {
         // Create (This will trigger the "Allowed Agents" check on backend)
-        const res = await axios.post(`${API_BASE_URL}/api/agents/create`, agentData);
+        const res = await api.post(`/api/agents/create`, agentData);
         setAgents([...agents, res.data]);
       }
       setShowModal(false);

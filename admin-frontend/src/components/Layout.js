@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, NavLink } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 import {
   LayoutDashboard,
   Users,
@@ -21,6 +22,9 @@ const Layout = ({ onLogout, user }) => {
     onLogout();
     navigate('/login');
   };
+
+const token = localStorage.getItem('token');
+const decoded = token ? jwtDecode(token) : null;
 
   return (
     <div className="main-layout">

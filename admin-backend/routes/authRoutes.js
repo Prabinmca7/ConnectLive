@@ -4,12 +4,22 @@ const router = express.Router();
 const Company = require('../models/Company');
 const Agent = require('../models/Agent');
 
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
   // 1. UPDATED: Specific Super Admin Credentials
   if (username === 'superadmin' && password === 'prabin@123') {
-    return res.json({ 
+
+    const token = jwt.sign(
+        { role: 'super_admin', username },
+        process.env.JWT_SECRET,
+        { expiresIn: '30m' }
+      );
+
+    return res.json({ token,
       role: 'super-admin', 
       username: 'System Owner',
       companyId: null 
@@ -17,9 +27,16 @@ router.post('/login', async (req, res) => {
   }
 
   // 2. Check Company Admin Table
-  const company = await Company.findOne({ username, password });
-  if (company) {
-    return res.json({ 
+  const company = await Company.findOne({ username });
+  if (company && await bcrypt.compare(password, company.password)) {
+
+    const token = jwt.sign(
+        { role: 'admin', companyId: company._id },
+        process.env.JWT_SECRET,
+        { expiresIn: '30m' }
+      );
+
+    return res.json({ token,
       role: 'admin', 
       companyId: company._id, 
       companyName: company.companyName,
@@ -28,9 +45,17 @@ router.post('/login', async (req, res) => {
   }
 
   // 3. Check Agent Table
-  const agent = await Agent.findOne({ username, password });
-  if (agent) {
+  const agent = await Agent.findOne({ username });
+  if (agent && await bcrypt.compare(password, agent.password)) {
+
+    const token = jwt.sign(
+        { role: 'agent', companyId: agent.companyId, agentId: agent._id },
+        process.env.JWT_SECRET,
+        { expiresIn: '30m' }
+      );
+
     return res.json({ 
+      token,
       role: 'agent', 
       companyId: agent.companyId, 
       username: agent.username 

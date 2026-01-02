@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Building2, User, Key, Users, Trash2, Edit2, X } from 'lucide-react';
+import api from '../utils/api';
 
 const CompanyProfile = ({ user }) => {
   const [companies, setCompanies] = useState([]);
@@ -19,7 +19,7 @@ const CompanyProfile = ({ user }) => {
 
   const fetchCompanies = async () => {
     try {
-        const res = await axios.get(`${API_BASE_URL}/api/companies`);
+        const res = await api.get(`/api/companies`);
       setCompanies(res.data);
     } catch (err) {
       console.error("Error fetching companies", err);
@@ -33,9 +33,9 @@ const CompanyProfile = ({ user }) => {
       const payload = { ...formData, requesterRole: 'admin' };
       
       if (editingId) {
-        await axios.put(`${API_BASE_URL}/api/companies/${editingId}`, payload);
+        await api.put(`/api/companies/${editingId}`, payload);
       } else {
-        await axios.post(`${API_BASE_URL}/api/companies/create`, payload);
+        await api.post(`/api/companies/create`, payload);
       }
       
       setShowModal(false);
@@ -53,7 +53,7 @@ const CompanyProfile = ({ user }) => {
     setFormData({
       companyName: company.companyName,
       username: company.username,
-      password: company.password,
+      password: '',
       allowedAgents: company.allowedAgents
     });
     setShowModal(true);
@@ -61,7 +61,7 @@ const CompanyProfile = ({ user }) => {
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure? This will delete the company and all its agents.")) {
-      await axios.delete(`${API_BASE_URL}/api/companies/${id}`);
+      await api.delete(`/api/companies/${id}`);
       fetchCompanies();
     }
   };

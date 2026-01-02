@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import './login.css';
 
 const Login = ({ onLogin }) => {
@@ -7,7 +7,7 @@ const Login = ({ onLogin }) => {
   const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+ 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,7 +16,7 @@ const Login = ({ onLogin }) => {
 
     try {
       // API call to the unified login route
-      const response = await axios.post(`${API_BASE_URL}/api/auth/login`, {
+      const response = await api.post(`/api/auth/login`, {
         username: credentials.username,
         password: credentials.password
       });

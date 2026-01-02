@@ -3,8 +3,11 @@ const router = express.Router();
 const Agent = require('../models/Agent');
 const Company = require('../models/Company');
 
+const auth = require('../middleware/auth');
+const bcrypt = require('bcryptjs');
+
 // 1. CREATE an agent
-router.post('/create', async (req, res) => {
+router.post('/create', auth(['admin']), async (req, res) => {
     const { companyId, name, username, password, email, contact, status } = req.body;
     try {
         const company = await Company.findById(companyId);
@@ -16,17 +19,19 @@ router.post('/create', async (req, res) => {
                 message: `Limit reached. This company is only allowed ${company.allowedAgents} agents.` 
             });
         }
-
+        const hashedPassword = await bcrypt.hash(password, 10);
         const newAgent = new Agent({
             companyId,
             name,
             username,
-            password,
+            password:hashedPassword,
             email,
             contact,
             status
         });
-
+        if (req.user.companyId !== companyId) {
+            return res.status(403).json({ message: 'Unauthorized company access' });
+          }
         await newAgent.save();
         res.status(201).json(newAgent);
     } catch (err) {
@@ -35,7 +40,7 @@ router.post('/create', async (req, res) => {
 });
 
 // 2. UPDATE an agent (THE MISSING PIECE)
-router.put('/:id', async (req, res) => {
+router.put('/:id', auth(['admin']), async (req, res) => {
     const { name, username, password, email, contact, status } = req.body;
     try {
         // Build update object
@@ -81,7 +86,7 @@ router.get('/company/:companyId', async (req, res) => {
 });
 
 // 5. DELETE an agent
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', auth(['admin']), async (req, res) => {
     try {
         await Agent.findByIdAndDelete(req.params.id);
         res.json({ message: "Agent deleted" });

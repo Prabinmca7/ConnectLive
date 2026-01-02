@@ -4,14 +4,19 @@ const Company = require('../models/Company');
 const Agent = require('../models/Agent');
 const crypto = require('crypto');
 
+const auth = require('../middleware/auth');
+const bcrypt = require('bcryptjs');
+
+
 // CREATE a company profile
-router.post('/create', async (req, res) => {
+router.post('/create', auth(['super_admin']), async (req, res) => {
   const { companyName, username, password, allowedAgents } = req.body;
   try {
+    const hashedPassword = await bcrypt.hash(password, 10);
     const company = new Company({
       companyName,
       username,
-      password, // Note: In production, hash this with bcrypt
+      password:hashedPassword, 
       allowedAgents: Number(allowedAgents) || 5
     });
     await company.save();
@@ -22,9 +27,9 @@ router.post('/create', async (req, res) => {
 });
 
 // LIST all company profiles
-router.get('/', async (req, res) => {
+router.get('/', auth(['super_admin']), async (req, res) => {
   try {
-    const companies = await Company.find().sort({ createdAt: -1 });
+    const companies = await Company.find({}, '-password -apiKey').sort({ createdAt: -1 });
     res.json(companies);
   } catch (err) {
     res.status(500).json({ message: "Error fetching companies" });
@@ -32,21 +37,37 @@ router.get('/', async (req, res) => {
 });
 
 // UPDATE a company profile
-router.put('/:id', async (req, res) => {
+router.put('/:id', auth(['super_admin']), async (req, res) => {
   try {
+    const { companyName, username, password, allowedAgents } = req.body;
+
+    const updateData = {
+      companyName,
+      username,
+      allowedAgents: Number(allowedAgents) || 5
+    };
+
+    // ✅ Only hash password if provided
+    if (password && password.trim() !== '') {
+      updateData.password = await bcrypt.hash(password, 10);
+    }
+
     const updatedCompany = await Company.findByIdAndUpdate(
-      req.params.id, 
-      req.body, 
-      { new: true }
-    );
+      req.params.id,
+      updateData,
+      { new: true, runValidators: true }
+    ).select('-password -apiKey');
+
     res.json(updatedCompany);
   } catch (err) {
-    res.status(500).json({ message: "Error updating company" });
+    console.error('Update company error:', err);
+    res.status(500).json({ message: err.message });
   }
 });
 
+
 // DELETE a company profile and all its agents
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', auth(['super_admin']), async (req, res) => {
   try {
     await Company.findByIdAndDelete(req.params.id);
     await Agent.deleteMany({ companyId: req.params.id }); // Clean up agents
@@ -57,7 +78,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // Generate and save API Key
-router.post('/generate-api-key', async (req, res) => {
+router.post('/generate-api-key', auth(['admin']), async (req, res) => {
   const { companyId } = req.body;
   try {
     // Generate a secure random 32-character hex string
@@ -78,7 +99,7 @@ router.post('/generate-api-key', async (req, res) => {
 });
 
 // Get current API Key
-router.get('/:companyId/api-key', async (req, res) => {
+router.get('/:companyId/api-key', auth(['admin']), async (req, res) => {
   try {
     const company = await Company.findById(req.params.companyId);
     res.json({ apiKey: company?.apiKey || null });

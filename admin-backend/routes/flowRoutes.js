@@ -2,9 +2,10 @@ const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
 const Flow = require('../models/Flow');
+const auth = require('../middleware/auth');
 
 // SAVE or UPDATE a flow
-router.post('/save', async (req, res) => {
+router.post('/save', auth(['admin']), async (req, res) => {
   // Destructure EVERYTHING sent from the frontend
   const { id, companyId, createdBy, nodes, edges, viewport, name } = req.body;
   
@@ -21,7 +22,7 @@ router.post('/save', async (req, res) => {
       viewport, 
       name, 
       companyId,   // CRITICAL: Ensure this is saved
-      createdBy,   // CRITICAL: Ensure this is saved
+      createdBy:req.user.id,   // CRITICAL: Ensure this is saved
       lastSaved: Date.now() 
     };
 
@@ -40,8 +41,11 @@ router.post('/save', async (req, res) => {
 });
 
 // GET flow by Company ID (Corrected to handle empty results)
-router.get('/company/:companyId', async (req, res) => {
+router.get('/company/:companyId', auth(), async (req, res) => {
   try {
+    if (req.user.companyId !== req.params.companyId) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
     const flow = await Flow.findOne({ companyId: req.params.companyId });
     // If no flow exists yet, return an empty object or 204 instead of an error
     res.json(flow || {}); 

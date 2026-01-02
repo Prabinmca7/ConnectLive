@@ -18,11 +18,13 @@ export default function App() {
   });
 
   const handleLogin = (userData) => {
+    localStorage.setItem('token', userData.token);
     localStorage.setItem('app_user', JSON.stringify(userData));
     setUser(userData);
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('token');
     localStorage.removeItem('app_user');
     setUser(null);
   };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Key, Copy, RefreshCw, CheckCircle, Code } from 'lucide-react';
+import api from '../utils/api';
 
 const Settings = ({ user }) => {
   const [apiKey, setApiKey] = useState('');
@@ -8,7 +8,6 @@ const Settings = ({ user }) => {
   const [copied, setCopied] = useState(false);
   const [copiedScript, setCopiedScript] = useState(false);
 
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
   const WIDGET_URL = "http://localhost:3000/widget-loader.js"; 
 
   useEffect(() => {
@@ -19,7 +18,7 @@ const Settings = ({ user }) => {
     if (!user?.companyId) return;
     try {
       // Added cache buster ?t= to solve your 304 issue
-      const res = await axios.get(`${API_BASE_URL}/api/companies/${user.companyId}/api-key?t=${Date.now()}`);
+      const res = await api.get(`/api/companies/${user.companyId}/api-key?t=${Date.now()}`);
       setApiKey(res.data.apiKey);
     } catch (err) {
       console.error("Error fetching API key");
@@ -31,7 +30,7 @@ const Settings = ({ user }) => {
     
     setLoading(true);
     try {
-      const res = await axios.post(`${API_BASE_URL}/api/companies/generate-api-key`, {
+      const res = await api.post(`/api/companies/generate-api-key`, {
         companyId: user.companyId
       });
       setApiKey(res.data.apiKey);

@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Building2, MessageSquare, ShieldCheck } from 'lucide-react';
-import axios from 'axios';
-
+import api from '../utils/api';
 export default function Dashboard({ user }) {
   const [stats, setStats] = useState([]);
   const [loading, setLoading] = useState(true);
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+ 
   useEffect(() => {
     // Prevent API calls if user is not yet loaded
     if (!user) return;
@@ -16,7 +15,7 @@ export default function Dashboard({ user }) {
           ? '/api/super/stats' 
           : `/api/companies/${user.companyId}/stats`;
         
-        const res = await axios.get(`${API_BASE_URL}${endpoint}`);
+        const res = await api.get(endpoint);
         
         if (user.role === 'super-admin') {
           setStats([
